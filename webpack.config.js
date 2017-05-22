@@ -1,9 +1,7 @@
-var path = require("path");
-
 module.exports = {
 	entry: "./index.ts",
 	output: {
-		filename: "bundle.js"
+		filename: "index.js"
 	},
 	resolve: {
 		extensions: ["", ".ts"]
