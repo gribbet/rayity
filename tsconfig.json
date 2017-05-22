@@ -5,5 +5,7 @@
 		"sourceMap": true,
 		"target": "es5"
 	},
-	"files": []
+	"files": [
+		"index.ts"
+	]
 }

@@ -4,11 +4,12 @@ module.exports = {
 		filename: "index.js"
 	},
 	resolve: {
-		extensions: ["", ".ts"]
+		extensions: [".ts", ".js"]
 	},
 	module: {
-		loaders: [
-			{test: /\.ts?$/, loader: "ts-loader"}
-		]
+		rules: [{
+			test: /\.ts?$/,
+			loader: "ts-loader"
+		}]
 	}
-}
+};
