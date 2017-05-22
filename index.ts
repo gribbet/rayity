@@ -61,20 +61,20 @@ uniform float time;
 
 varying vec2 uv;
 
-const float epsilon = 0.001;
-const int maxSteps = 32;
-const int bounces = 5;
+const float epsilon = 0.0001;
+const int maxSteps = 256;
+const int bounces = 20;
 
 const vec3 target = vec3(0, 0, 0);
-const vec3 eye = vec3(0, 0, 5);
+const vec3 eye = vec3(0, 1, 7);
 const vec3 up = vec3(0, 1, 0);
 
 vec2 rand2n(int seed) {
 	vec2 s = uv * (1.0 + time + float(seed));
 	// implementation based on: lumina.sourceforge.net/Tutorials/Noise.html
 	return vec2(
-		fract(sin(dot(s.xy ,vec2(12.9898, 78.233))) * 43758.5453),
-		fract(cos(dot(s.xy ,vec2(4.898, 7.23))) * 23421.631));
+		fract(sin(dot(s.xy, vec2(12.9898, 78.233))) * 43758.5453),
+		fract(cos(dot(s.xy, vec2(4.898, 7.23))) * 23421.631));
 }
 
 vec3 ortho(vec3 v) {
@@ -89,7 +89,7 @@ vec3 sample(vec3 normal, int seed) {
 	random.x *= 2.0 * 3.14159;
 	random.y = sqrt(random.y);
 	float q = sqrt(1.0 - random.y * random.y);
-	return q*(cos(random.x) * o1  + sin(random.x) * o2) + random.y * normal;
+	return q * (cos(random.x) * o1  + sin(random.x) * o2) + random.y * normal;
 }
 
 float sphereDistance(vec3 position) {
@@ -106,6 +106,20 @@ vec3 sphereNormal(vec3 position) {
 		sphereDistance(position - vec3(0, 0, epsilon))));
 }
 
+float planeDistance(vec3 position) {
+	return abs(position.y + 0.6);
+}
+
+vec3 planeNormal(vec3 position) {
+	return normalize(vec3(
+		planeDistance(position + vec3(epsilon, 0, 0)) -
+		planeDistance(position - vec3(epsilon, 0, 0)),
+		planeDistance(position + vec3(0, epsilon, 0)) -
+		planeDistance(position - vec3(0, epsilon, 0)),
+		planeDistance(position + vec3(0, 0, epsilon)) -
+		planeDistance(position - vec3(0, 0, epsilon))));
+}
+
 void main() {
 	float aspectRatio = resolution.x / resolution.y;
 	vec3 look = normalize(target - eye);
@@ -120,42 +134,63 @@ void main() {
 	vec3 luminance = vec3(1.0, 1.0, 1.0);
 	vec3 total = vec3(0, 0, 0);
 	
-	for (int k = 0; k < bounces; k++) {
+	for (int k = 1; k <= bounces; k++) {
 		float t = 0.0;
 		
-		for (int j = 0; j < maxSteps; j++) {
+		for (int j = 1; j <= maxSteps; j++) {
 			vec3 position = from + direction * t;
-			float minimum = 1e9;
+			float minimum = 1e10;
 			float distance = 0.0;
-			vec3 original = texture2D(texture, uv * 0.5 - 0.5).xyz;
+			int seed = j * 2 * bounces + k;
+			int i = -1;
 			
 			distance = sphereDistance(position);
-			if (distance < minimum)
+			if (distance < minimum) {
 				minimum = distance;
+				i = 0;
+			}
+			
+			distance = planeDistance(position);
+			if (distance < minimum) {
+				minimum = distance;
+				i = 1;
+			}
+			
 			if (minimum < epsilon) {
-				vec3 normal = sphereNormal(position);
+				vec3 normal;
+				 
+				if (i == 0)
+					normal = sphereNormal(position);
+				else if (i == 1)
+					normal = planeNormal(position);
+					
 				from = position + normal * epsilon;
 				vec3 emissive = vec3(0, 0, 0);
-				float reflectivity = 0.5;
-				float albedo = 0.5;
-				vec3 color = vec3(1, 0.5, 0.5);
+				float reflectivity = 0.0;
+				float albedo = 1.0;
+				vec3 color = vec3(0.5, 0.5, 0.5);
+				
+				if (i == 0)
+					reflectivity = 0.4;
 				
 				total += luminance * emissive;
-				if (rand2n(1 + k * j).y < reflectivity)
+				if (rand2n(seed).y < reflectivity)
 					direction = direction - 2.0 * dot(direction, normal) * normal;
-				else
-					direction = sample(normal, 2 + k * j);
-				luminance = luminance * albedo * dot(direction, normal) * color;
+				else {
+					direction = sample(normal, seed + 1);
+					luminance = luminance * albedo * dot(direction, normal);
+				}
+				luminance = luminance * color;
 				
 				break;
 			} else {
 				t += minimum;
-				if (j == maxSteps - 1)
+				if (j == maxSteps)
 					done = true;
 			}
 		}
-	
-		total += luminance * clamp(dot(direction, normalize(vec3(1, 1, 1))), 0.0, 1.0);
+		
+		total += luminance * max(dot(direction, normalize(vec3(1.0, 1.0, 1.0))), 0.0);
 		
 		if (done)
 			break;
@@ -209,6 +244,8 @@ gl.vertexAttribPointer(position, 2, WebGLRenderingContext.FLOAT, false, 0, 0);
 
 gl.viewport(0, 0, width, height);
 
+const start = new Date();
+
 function step(t: number, odd: Boolean = false) {
 	const read = textures[odd ? 0 : 1];
 	const write = textures[odd ? 1 : 0];
@@ -225,7 +262,7 @@ function step(t: number, odd: Boolean = false) {
 	gl.bindTexture(WebGLRenderingContext.TEXTURE_2D, write);
 	gl.drawElements(WebGLRenderingContext.TRIANGLES, indices.length, WebGLRenderingContext.UNSIGNED_SHORT, 0);
 
-	window.requestAnimationFrame(t => step(t, !odd));
+	setTimeout(() => step((new Date().getTime() - start.getTime()), !odd), 1);
 }
 
 step(0);
