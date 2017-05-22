@@ -60,9 +60,111 @@ uniform float time;
 
 varying vec2 uv;
 
+const float epsilon = 0.0001;
+const int maxSteps = 256;
+const int bounces = 4;
+const int samples = 4;
+
+const vec3 target = vec3(0, 0, 0);
+const vec3 eye = vec3(0, 0, 5);
+const vec3 up = vec3(0, 1, 0);
+
+vec2 rand2n(int seed) {
+	vec2 s = uv * (1.0 + time + float(seed));
+	// implementation based on: lumina.sourceforge.net/Tutorials/Noise.html
+	return vec2(
+		fract(sin(dot(s.xy ,vec2(12.9898,78.233))) * 43758.5453),
+		fract(cos(dot(s.xy ,vec2(4.898,7.23))) * 23421.631));
+}
+
+vec3 ortho(vec3 v) {
+	//  See : http://lolengine.net/blog/2013/09/21/picking-orthogonal-vector-combing-coconuts
+	return abs(v.x) > abs(v.z) ? vec3(-v.y, v.x, 0.0)  : vec3(0.0, -v.z, v.y);
+}
+
+vec3 sample(vec3 normal, int bounce) {
+	vec3 o1 = normalize(ortho(normal));
+	vec3 o2 = normalize(cross(normal, o1));
+	vec2 random = rand2n(bounce);
+	random.x *= 2.0 * 3.14159;
+	random.y = sqrt(random.y);
+	float q = sqrt(1.0 - random.y * random.y);
+	return q*(cos(random.x) * o1  + sin(random.x) * o2) + random.y * normal;
+}
+
+float sphereDistance(vec3 position) {
+	return length(position) - 0.5;
+}
+
+vec3 sphereNormal(vec3 position) {
+	return normalize(vec3(
+		sphereDistance(position + vec3(epsilon, 0, 0)) -
+		sphereDistance(position - vec3(epsilon, 0, 0)),
+		sphereDistance(position + vec3(0, epsilon, 0)) -
+		sphereDistance(position - vec3(0, epsilon, 0)),
+		sphereDistance(position + vec3(0, 0, epsilon)) -
+		sphereDistance(position - vec3(0, 0, epsilon))));
+}
+
 void main() {
-	vec3 original = texture2D(texture, uv * 0.5 - 0.5).xyz;
-	gl_FragColor = vec4(original + (vec3(0, 1, 0) - original) * 0.01, 1);
+	float aspectRatio = resolution.x / resolution.y;
+	vec3 look = normalize(target - eye);
+	vec3 right = cross(look, up);
+	
+	for (int l = 0; l < samples; l++) {
+		vec2 px = (uv + rand2n(1) / resolution.x) / 4.0;
+		
+		vec3 direction = normalize(look + right * px.x * aspectRatio + up * px.y);
+		vec3 from = eye;
+		bool done = false;
+		
+		vec3 luminance = vec3(1.0, 1.0, 1.0);
+		vec3 total = vec3(0, 0, 0);
+		
+		for (int k = 0; k < bounces; k++) {
+			float t = 0.0;
+			
+			for (int j = 0; j < maxSteps; j++) {
+				vec3 position = from + direction * t;
+				float minimum = 1e9;
+				float distance = 0.0;
+				vec3 original = texture2D(texture, uv * 0.5 - 0.5).xyz;
+				
+				distance = sphereDistance(position);
+				if (distance < minimum)
+					minimum = distance;
+				if (minimum < epsilon) {
+					vec3 normal = sphereNormal(position);
+					from = position + normal * epsilon;
+					vec3 emissive = vec3(0, 0, 0);
+					float reflectivity = 0.4;
+					float albedo = 0.5;
+					vec3 color = vec3(1, 0.5, 0.5);
+					
+					total += luminance * emissive;
+					if (rand2n(3 + k * j).y < reflectivity)
+						direction = direction - 2.0 * dot(direction, normal) * normal;
+					else
+						direction = sample(normal, k * j);
+					luminance = luminance * albedo * dot(direction, normal) * color;
+					
+					break;
+				} else {
+					t += minimum;
+					if (j == maxSteps - 1)
+						done = true;
+				}
+			}
+		
+			total += luminance * clamp(dot(direction, normalize(vec3(3, 2, 1))), 0.0, 1.0);
+			
+			if (done)
+				break;
+		}
+		
+		vec3 original = texture2D(texture, uv * 0.5 - 0.5).xyz;
+		gl_FragColor = vec4(original + (total - original) * 0.1, 1.0);	
+	}
 }
 
 `);
