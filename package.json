@@ -1,0 +1,14 @@
+{
+	"name": "typescript-raymarch",
+	"version": "1.0.0",
+	"scripts": {
+		"start": "webpack-dev-server --content-base ./public"
+	},
+	"license": "MIT",
+	"devDependencies": {
+		"ts-loader": "^0.7.2",
+		"typescript": "^1.7.5",
+		"webpack": "^1.12.9",
+		"webpack-dev-server": "^1.14.0"
+	}
+}
