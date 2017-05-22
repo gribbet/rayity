@@ -6,7 +6,7 @@ canvas.width = width;
 canvas.height = height;
 document.body.appendChild(canvas);
 
-const gl = canvas.getContext("webgl", {});
+const gl = canvas.getContext("webgl");
 
 gl.getExtension("OES_texture_float");
 
@@ -85,7 +85,6 @@ const vertices = Array(
 	-1, 1,
 	1, 1,
 	1, -1);
-
 const indices = Array(0, 1, 2, 0, 2, 3);
 
 const vertexBuffer = gl.createBuffer();
