@@ -1,4 +1,5 @@
 module.exports = {
+	devtool: "source-map",
 	entry: "./index.ts",
 	output: {
 		filename: "index.js"
