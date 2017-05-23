@@ -107,7 +107,7 @@ vec3 sphereNormal(vec3 position) {
 }
 
 float plane1Distance(vec3 position) {
-	return abs(position.y + 0.0);
+	return abs(position.y + 0.5);
 }
 
 vec3 plane1Normal(vec3 position) {
@@ -135,7 +135,7 @@ vec3 plane2Normal(vec3 position) {
 }
 
 float plane3Distance(vec3 position) {
-	return abs(position.z + 1.0);
+	return abs(position.z + 2.0);
 }
 
 vec3 plane3Normal(vec3 position) {
@@ -149,7 +149,7 @@ vec3 plane3Normal(vec3 position) {
 }
 
 float plane4Distance(vec3 position) {
-	return abs(position.z + 2.0);
+	return abs(position.z + 3.0);
 }
 
 vec3 plane4Normal(vec3 position) {
@@ -195,7 +195,7 @@ void main() {
 	vec3 look = normalize(target - eye);
 	vec3 right = cross(look, up);
 	
-	vec2 px = (uv + rand2n(0) / resolution.x);
+	vec2 px = (uv + rand2n(0) * 2.0 / resolution.x);
 	
 	vec3 direction = normalize(look + right * px.x * aspectRatio + up * px.y);
 	vec3 from = eye;
@@ -285,15 +285,16 @@ void main() {
 			from = position + normal * epsilon;
 			vec3 emissive = vec3(0, 0, 0);
 			float reflectivity = 0.0;
-			float albedo = 0.5;
+			float albedo = 0.8;
 			vec3 color = vec3(0.5, 0.5, 0.5);
 			
 			if (i == 3)
 				emissive = vec3(1, 1, 1) * 4.0;
 				
 			if (i == 7) {
+				albedo = 1.0;
 				reflectivity = 0.8;
-				 emissive = vec3(15, 0.9, 0.9);
+				color = vec3(0.8, 0.5, 0.5);
 			}
 			
 			total += luminance * emissive;
