@@ -66,7 +66,7 @@ const int maxSteps = 256;
 const int bounces = 20;
 
 const vec3 target = vec3(0, 0, 0);
-const vec3 eye = vec3(0, 1, 7);
+const vec3 eye = vec3(0.2, 1, 2);
 const vec3 up = vec3(0, 1, 0);
 
 vec2 rand2n(int seed) {
@@ -106,18 +106,88 @@ vec3 sphereNormal(vec3 position) {
 		sphereDistance(position - vec3(0, 0, epsilon))));
 }
 
-float planeDistance(vec3 position) {
-	return abs(position.y + 0.6);
+float plane1Distance(vec3 position) {
+	return abs(position.y + 0.0);
 }
 
-vec3 planeNormal(vec3 position) {
+vec3 plane1Normal(vec3 position) {
 	return normalize(vec3(
-		planeDistance(position + vec3(epsilon, 0, 0)) -
-		planeDistance(position - vec3(epsilon, 0, 0)),
-		planeDistance(position + vec3(0, epsilon, 0)) -
-		planeDistance(position - vec3(0, epsilon, 0)),
-		planeDistance(position + vec3(0, 0, epsilon)) -
-		planeDistance(position - vec3(0, 0, epsilon))));
+		plane1Distance(position + vec3(epsilon, 0, 0)) -
+		plane1Distance(position - vec3(epsilon, 0, 0)),
+		plane1Distance(position + vec3(0, epsilon, 0)) -
+		plane1Distance(position - vec3(0, epsilon, 0)),
+		plane1Distance(position + vec3(0, 0, epsilon)) -
+		plane1Distance(position - vec3(0, 0, epsilon))));
+}
+
+float plane2Distance(vec3 position) {
+	return abs(position.y - 2.0);
+}
+
+vec3 plane2Normal(vec3 position) {
+	return normalize(vec3(
+		plane2Distance(position + vec3(epsilon, 0, 0)) -
+		plane2Distance(position - vec3(epsilon, 0, 0)),
+		plane2Distance(position + vec3(0, epsilon, 0)) -
+		plane2Distance(position - vec3(0, epsilon, 0)),
+		plane2Distance(position + vec3(0, 0, epsilon)) -
+		plane2Distance(position - vec3(0, 0, epsilon))));
+}
+
+float plane3Distance(vec3 position) {
+	return abs(position.z + 1.0);
+}
+
+vec3 plane3Normal(vec3 position) {
+	return normalize(vec3(
+		plane3Distance(position + vec3(epsilon, 0, 0)) -
+		plane3Distance(position - vec3(epsilon, 0, 0)),
+		plane3Distance(position + vec3(0, epsilon, 0)) -
+		plane3Distance(position - vec3(0, epsilon, 0)),
+		plane3Distance(position + vec3(0, 0, epsilon)) -
+		plane3Distance(position - vec3(0, 0, epsilon))));
+}
+
+float plane4Distance(vec3 position) {
+	return abs(position.z + 2.0);
+}
+
+vec3 plane4Normal(vec3 position) {
+	return normalize(vec3(
+		plane4Distance(position + vec3(epsilon, 0, 0)) -
+		plane4Distance(position - vec3(epsilon, 0, 0)),
+		plane4Distance(position + vec3(0, epsilon, 0)) -
+		plane4Distance(position - vec3(0, epsilon, 0)),
+		plane4Distance(position + vec3(0, 0, epsilon)) -
+		plane4Distance(position - vec3(0, 0, epsilon))));
+}
+
+float plane5Distance(vec3 position) {
+	return abs(position.x - 2.0);
+}
+
+vec3 plane5Normal(vec3 position) {
+	return normalize(vec3(
+		plane5Distance(position + vec3(epsilon, 0, 0)) -
+		plane5Distance(position - vec3(epsilon, 0, 0)),
+		plane5Distance(position + vec3(0, epsilon, 0)) -
+		plane5Distance(position - vec3(0, epsilon, 0)),
+		plane5Distance(position + vec3(0, 0, epsilon)) -
+		plane5Distance(position - vec3(0, 0, epsilon))));
+}
+
+float plane6Distance(vec3 position) {
+	return abs(position.x + 2.0);
+}
+
+vec3 plane6Normal(vec3 position) {
+	return normalize(vec3(
+		plane6Distance(position + vec3(epsilon, 0, 0)) -
+		plane6Distance(position - vec3(epsilon, 0, 0)),
+		plane6Distance(position + vec3(0, epsilon, 0)) -
+		plane6Distance(position - vec3(0, epsilon, 0)),
+		plane6Distance(position + vec3(0, 0, epsilon)) -
+		plane6Distance(position - vec3(0, 0, epsilon))));
 }
 
 void main() {
@@ -125,75 +195,114 @@ void main() {
 	vec3 look = normalize(target - eye);
 	vec3 right = cross(look, up);
 	
-	vec2 px = (uv + rand2n(0) / resolution.x) / 4.0;
+	vec2 px = (uv + rand2n(0) / resolution.x);
 	
 	vec3 direction = normalize(look + right * px.x * aspectRatio + up * px.y);
 	vec3 from = eye;
-	bool done = false;
 	
 	vec3 luminance = vec3(1.0, 1.0, 1.0);
 	vec3 total = vec3(0, 0, 0);
 	
 	for (int k = 1; k <= bounces; k++) {
+		int seed = k;
 		float t = 0.0;
+		int i = 0;
+		vec3 position;
 		
 		for (int j = 1; j <= maxSteps; j++) {
-			vec3 position = from + direction * t;
+			position = from + direction * t;
 			float minimum = 1e10;
-			float distance = 0.0;
-			int seed = j * 2 * bounces + k;
-			int i = -1;
+			float distance;
 			
-			distance = sphereDistance(position);
-			if (distance < minimum) {
-				minimum = distance;
-				i = 0;
-			}
-			
-			distance = planeDistance(position);
+			distance = plane1Distance(position);
 			if (distance < minimum) {
 				minimum = distance;
 				i = 1;
 			}
 			
-			if (minimum < epsilon) {
-				vec3 normal;
-				 
-				if (i == 0)
-					normal = sphereNormal(position);
-				else if (i == 1)
-					normal = planeNormal(position);
-					
-				from = position + normal * epsilon;
-				vec3 emissive = vec3(0, 0, 0);
-				float reflectivity = 0.0;
-				float albedo = 1.0;
-				vec3 color = vec3(0.5, 0.5, 0.5);
-				
-				if (i == 0)
-					reflectivity = 0.4;
-				
-				total += luminance * emissive;
-				if (rand2n(seed).y < reflectivity)
-					direction = direction - 2.0 * dot(direction, normal) * normal;
-				else {
-					direction = sample(normal, seed + 1);
-					luminance = luminance * albedo * dot(direction, normal);
-				}
-				luminance = luminance * color;
-				
-				break;
-			} else {
-				t += minimum;
-				if (j == maxSteps)
-					done = true;
+			distance = plane2Distance(position);
+			if (distance < minimum) {
+				minimum = distance;
+				i = 2;
 			}
+			
+			distance = plane3Distance(position);
+			if (distance < minimum) {
+				minimum = distance;
+				i = 3;
+			}
+			
+			distance = plane4Distance(position);
+			if (distance < minimum) {
+				minimum = distance;
+				i = 4;
+			}
+			
+			distance = plane5Distance(position);
+			if (distance < minimum) {
+				minimum = distance;
+				i = 5;
+			}
+			
+			distance = plane6Distance(position);
+			if (distance < minimum) {
+				minimum = distance;
+				i = 6;
+			}
+			
+			distance = sphereDistance(position);
+			if (distance < minimum) {
+				minimum = distance;
+				i = 7;
+			}
+			
+		 	if (minimum < epsilon)
+		 		break;
+			 
+			t += minimum;
 		}
 		
-		total += luminance * max(dot(direction, normalize(vec3(1.0, 1.0, 1.0))), 0.0);
-		
-		if (done)
-			break;
+		if (i == 0)
+			total += luminance;
+		else {
+			vec3 normal;
+				 
+			if (i == 1)
+				normal = plane1Normal(position);
+			else if (i == 2)
+				normal = plane2Normal(position);
+			else if (i == 3)
+				normal = plane3Normal(position);
+			else if (i == 4)
+				normal = plane4Normal(position);
+			else if (i == 5)
+				normal = plane5Normal(position);
+			else if (i == 6)
+				normal = plane6Normal(position);
+			else if (i == 7)
+				normal = sphereNormal(position);
+				
+			from = position + normal * epsilon;
+			vec3 emissive = vec3(0, 0, 0);
+			float reflectivity = 0.0;
+			float albedo = 0.5;
+			vec3 color = vec3(0.5, 0.5, 0.5);
+			
+			if (i == 3)
+				emissive = vec3(1, 1, 1) * 4.0;
+				
+			if (i == 7) {
+				reflectivity = 0.8;
+				 emissive = vec3(15, 0.9, 0.9);
+			}
+			
+			total += luminance * emissive;
+			if (rand2n(seed).y < reflectivity)
+				direction = direction - 2.0 * dot(direction, normal) * normal;
+			else
+				direction = sample(normal, seed);
+			luminance = luminance * albedo * color;
+		}
 	}
 	
 	vec4 original = texture2D(texture, uv * 0.5 - 0.5);
@@ -244,8 +353,6 @@ gl.vertexAttribPointer(position, 2, WebGLRenderingContext.FLOAT, false, 0, 0);
 
 gl.viewport(0, 0, width, height);
 
-const start = new Date();
-
 function step(t: number, odd: Boolean = false) {
 	const read = textures[odd ? 0 : 1];
 	const write = textures[odd ? 1 : 0];
@@ -262,7 +369,7 @@ function step(t: number, odd: Boolean = false) {
 	gl.bindTexture(WebGLRenderingContext.TEXTURE_2D, write);
 	gl.drawElements(WebGLRenderingContext.TRIANGLES, indices.length, WebGLRenderingContext.UNSIGNED_SHORT, 0);
 
-	setTimeout(() => step((new Date().getTime() - start.getTime()), !odd), 1);
+	requestAnimationFrame(t => step(t, !odd));
 }
 
 step(0);
