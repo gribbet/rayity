@@ -1,5 +1,5 @@
-const width = 256;
-const height = 256;
+const width = 512;
+const height = 512;
 
 const canvas = document.createElement("canvas");
 canvas.width = width;
@@ -61,9 +61,9 @@ uniform float time;
 
 varying vec2 uv;
 
-const float epsilon = 0.0001;
-const int maxSteps = 256;
-const int bounces = 20;
+const float epsilon = 0.001;
+const int maxSteps = 32;
+const int bounces = 4;
 
 const vec3 target = vec3(0, 0, 0);
 const vec3 eye = vec3(0.2, 1, 2);
@@ -149,7 +149,7 @@ vec3 plane3Normal(vec3 position) {
 }
 
 float plane4Distance(vec3 position) {
-	return abs(position.z + 3.0);
+	return abs(position.z - 3.0);
 }
 
 vec3 plane4Normal(vec3 position) {
@@ -195,7 +195,7 @@ void main() {
 	vec3 look = normalize(target - eye);
 	vec3 right = cross(look, up);
 	
-	vec2 px = (uv + rand2n(0) * 2.0 / resolution.x);
+	vec2 px = (uv + (rand2n(0) * 2.0 - 1.0) / resolution.x);
 	
 	vec3 direction = normalize(look + right * px.x * aspectRatio + up * px.y);
 	vec3 from = eye;
@@ -283,18 +283,22 @@ void main() {
 				normal = sphereNormal(position);
 				
 			from = position + normal * epsilon;
-			vec3 emissive = vec3(0, 0, 0);
+			vec3 emissive = vec3(0.1, 0.1, 0.1);
 			float reflectivity = 0.0;
 			float albedo = 0.8;
 			vec3 color = vec3(0.5, 0.5, 0.5);
 			
-			if (i == 3)
-				emissive = vec3(1, 1, 1) * 4.0;
+			if (i == 6)
+				emissive = vec3(1, 1, 1) * 3.0;
+				
+			if (i == 5)
+				albedo = 0.1; 
 				
 			if (i == 7) {
 				albedo = 1.0;
 				reflectivity = 0.8;
-				color = vec3(0.8, 0.5, 0.5);
+				emissive = vec3(0, 0, 0.5);
+				color = vec3(0.9, 0.5, 0.5);
 			}
 			
 			total += luminance * emissive;
