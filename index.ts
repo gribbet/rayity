@@ -57,6 +57,7 @@ precision highp float;
 uniform sampler2D texture;
 
 #define PI 3.14159
+#define MAX_VALUE 1e10
 
 uniform vec2 resolution;
 uniform float time;
@@ -68,11 +69,11 @@ const int maxSteps = 128;
 const int bounces = 16;
 
 const vec3 target = vec3(0, 0, 0);
-const vec3 eye = vec3(8, 4, 0);
+const vec3 eye = vec3(8, 4, -1);
 
 const float field = PI / 4.0;
-const float focal = length(target - eye);//3.5;
-const float aperture = 0.00 * focal;
+const float focal = length(target - eye)*0.6;//3.5;
+const float aperture = 0.03 * focal;
 const vec3 look = normalize(target - eye);
 const vec3 qup = vec3(0, 1, 0);
 const vec3 up = qup - look * dot(look, qup);
@@ -91,7 +92,7 @@ vec3 ortho(vec3 v) {
 	return abs(v.x) > abs(v.z) ? vec3(-v.y, v.x, 0.0) : vec3(0.0, -v.z, v.y);
 }
 
-vec3 sample(vec3 normal, int seed) {
+vec3 sampleHemisphere(vec3 normal, int seed) {
 	vec3 o1 = normalize(ortho(normal));
 	vec3 o2 = normalize(cross(normal, o1));
 	vec2 random = rand2n(seed);
@@ -101,7 +102,7 @@ vec3 sample(vec3 normal, int seed) {
 	return q * (cos(random.x) * o1  + sin(random.x) * o2) + random.y * normal;
 }
 
-vec3 scatter(int seed) {
+vec3 sampleSphere(int seed) {
 	vec2 random = rand2n(seed);
 	vec2 angle = vec2(1.0 - 2.0 * random.x, 2.0 * PI * random.y);
 	return vec3(cos(angle.x) * sin(angle.y), sin(angle.x) * sin(angle.y), cos(angle.y));
@@ -235,7 +236,7 @@ void main() {
 		
 		for (int j = 1; j <= maxSteps; j++) {
 			position = from + direction * t;
-			float minimum = 1e10;
+			float minimum = MAX_VALUE;
 			float distance;
 			
 			distance = plane1Distance(position);
@@ -280,21 +281,20 @@ void main() {
 				i = 7;
 			}
 			
-		 	if (minimum < epsilon)
+			if (minimum < epsilon)
 		 		break;
 		 	
 		 	t += minimum;
+		 	
 		}
-		
 		
 		vec4 random = vec4(rand2n(seed), rand2n(seed + 1));
 		 	
 		
 		if (exp(-t / scatter1) < random.x) {
-			from = position - t * random.y * direction;
-			direction = scatter(seed);
-			scatter1 = 1e10;
-			i = 0;
+			from = position - (t + epsilon * 2.0) * direction;
+			direction = sampleSphere(seed);
+			scatter1 = MAX_VALUE;
 			continue;
 		}
 		
@@ -321,44 +321,35 @@ void main() {
 				
 			vec3 emissive = vec3(0, 0, 0);
 			float reflectivity = 0.0;
-			float albedo = 0.9;
-			float transparency = 0.0;
 			float refraction = 1.5;
-			vec3 color = vec3(0.5, 0.5, 0.5);
+			float scatter = 0.0;
+			vec3 color = vec3(1, 1, 1) * 0.9;
 			
-			if (i == 2) {
-				emissive = vec3(1, 1, 1) * 6.0;
-				albedo = 0.0;
+			if (i == 1) {
+				emissive = vec3(1, 1, 1) * 1.6;
+				color = vec3(0, 0, 0);
 			}
 				
 			if (i == 7) {
-				transparency = 0.8;
-				albedo = 1.0;
-				reflectivity = 0.2;
-				//albedo = 0.;
-				//emissive = vec3(0, 0, 0.5);
-				color = vec3(1.0, 0.8, 0.8);
+				reflectivity = 0.1;
+				scatter = 2.0;
+				color = vec3(1, 0.9, 0.9);
 			}
 			
 			total += luminance * emissive;
-			
-			if (random.x > albedo)
-				break;
 				
 			luminance = luminance * color;
 			
-			if (random.y < transparency) { 
-				from = position - normal * epsilon;
-				direction = refract(direction, normal, 1.0/refraction);
-				
-				if (i == 7)
-					scatter1 = 5.0;
+			if (random.y < reflectivity) {
+			 	from = position + normal * epsilon;
+			 	direction = reflect(direction, normal);
+			} else if (scatter == 0.0) {
+			 	from = position + normal * epsilon;
+			 	direction = sampleHemisphere(normal, seed);
 			} else {
-				from = position + normal * epsilon;
-				if (random.z < reflectivity)
-					direction = reflect(direction, normal);
-				else
-					direction = sample(normal, seed + 2);
+			 	from = position - normal * epsilon;
+				direction = refract(direction, normal, 1.0/refraction);
+				scatter1 = scatter;
 			}
 		}
 	}
