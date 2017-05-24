@@ -56,18 +56,27 @@ gl.shaderSource(fragmentShader, `
 precision highp float;
 uniform sampler2D texture;
 
+#define PI 3.14159
+
 uniform vec2 resolution;
 uniform float time;
 
 varying vec2 uv;
 
 const float epsilon = 0.001;
-const int maxSteps = 32;
-const int bounces = 4;
+const int maxSteps = 128;
+const int bounces = 16;
 
 const vec3 target = vec3(0, 0, 0);
-const vec3 eye = vec3(0.2, 1, 2);
-const vec3 up = vec3(0, 1, 0);
+const vec3 eye = vec3(8, 4, 0);
+
+const float field = PI / 4.0;
+const float focal = length(target - eye);//3.5;
+const float aperture = 0.00 * focal;
+const vec3 look = normalize(target - eye);
+const vec3 qup = vec3(0, 1, 0);
+const vec3 up = qup - look * dot(look, qup);
+const vec3 right = cross(look, up);
 
 vec2 rand2n(int seed) {
 	vec2 s = uv * (1.0 + time + float(seed));
@@ -86,14 +95,26 @@ vec3 sample(vec3 normal, int seed) {
 	vec3 o1 = normalize(ortho(normal));
 	vec3 o2 = normalize(cross(normal, o1));
 	vec2 random = rand2n(seed);
-	random.x *= 2.0 * 3.14159;
+	random.x *= 2.0 * PI;
 	random.y = sqrt(random.y);
 	float q = sqrt(1.0 - random.y * random.y);
 	return q * (cos(random.x) * o1  + sin(random.x) * o2) + random.y * normal;
 }
 
-float sphereDistance(vec3 position) {
+vec3 scatter(int seed) {
+	vec2 random = rand2n(seed);
+	vec2 angle = vec2(1.0 - 2.0 * random.x, 2.0 * PI * random.y);
+	return vec3(cos(angle.x) * sin(angle.y), sin(angle.x) * sin(angle.y), cos(angle.y));
+}	
+
+float sphereDistance1(vec3 position) {
 	return length(position) - 0.5;
+}
+
+float sphereDistance(vec3 position) {
+	position.x = mod(position.x, 1.0) - 0.5;
+	position.z = mod(position.z, 1.0) - 0.5;
+	return sphereDistance1(position);
 }
 
 vec3 sphereNormal(vec3 position) {
@@ -107,7 +128,7 @@ vec3 sphereNormal(vec3 position) {
 }
 
 float plane1Distance(vec3 position) {
-	return abs(position.y + 0.5);
+	return dot(position, vec3(0, 1, 0)) + 5.0;
 }
 
 vec3 plane1Normal(vec3 position) {
@@ -121,7 +142,7 @@ vec3 plane1Normal(vec3 position) {
 }
 
 float plane2Distance(vec3 position) {
-	return abs(position.y - 2.0);
+	return dot(position, vec3(0, -1, 0)) + 5.0;
 }
 
 vec3 plane2Normal(vec3 position) {
@@ -135,7 +156,7 @@ vec3 plane2Normal(vec3 position) {
 }
 
 float plane3Distance(vec3 position) {
-	return abs(position.z + 2.0);
+	return dot(position, vec3(0, 0, 1)) + 5.0;
 }
 
 vec3 plane3Normal(vec3 position) {
@@ -149,7 +170,7 @@ vec3 plane3Normal(vec3 position) {
 }
 
 float plane4Distance(vec3 position) {
-	return abs(position.z - 3.0);
+	return dot(position, vec3(0, 0, -1)) + 5.0;
 }
 
 vec3 plane4Normal(vec3 position) {
@@ -163,7 +184,7 @@ vec3 plane4Normal(vec3 position) {
 }
 
 float plane5Distance(vec3 position) {
-	return abs(position.x - 2.0);
+	return dot(position, vec3(-1, 0, 0)) + 5.0;
 }
 
 vec3 plane5Normal(vec3 position) {
@@ -177,7 +198,7 @@ vec3 plane5Normal(vec3 position) {
 }
 
 float plane6Distance(vec3 position) {
-	return abs(position.x + 2.0);
+	return dot(position, vec3(1, 0, 0)) + 5.0;
 }
 
 vec3 plane6Normal(vec3 position) {
@@ -192,22 +213,25 @@ vec3 plane6Normal(vec3 position) {
 
 void main() {
 	float aspectRatio = resolution.x / resolution.y;
-	vec3 look = normalize(target - eye);
-	vec3 right = cross(look, up);
+	vec2 noise = rand2n(0);
 	
-	vec2 px = (uv + (rand2n(0) * 2.0 - 1.0) / resolution.x);
-	
-	vec3 direction = normalize(look + right * px.x * aspectRatio + up * px.y);
-	vec3 from = eye;
+	vec2 origin = noise.x * aperture * vec2(cos(noise.y * 2.0 * PI), sin(noise.y * 2.0 * PI));
+
+	vec2 px = uv + (noise * 2.0 - 1.0) / resolution.x;
+	vec3 screen = eye + (look + tan(field) * (px.x * aspectRatio * right + px.y * up)) * focal;
+
+	vec3 from = eye + right * origin.x + up * origin.y;
+	vec3 direction = normalize(screen - from);
 	
 	vec3 luminance = vec3(1.0, 1.0, 1.0);
 	vec3 total = vec3(0, 0, 0);
+	float scatter1 = 1e10;
 	
 	for (int k = 1; k <= bounces; k++) {
 		int seed = k;
 		float t = 0.0;
 		int i = 0;
-		vec3 position;
+		vec3 position = from;
 		
 		for (int j = 1; j <= maxSteps; j++) {
 			position = from + direction * t;
@@ -215,56 +239,69 @@ void main() {
 			float distance;
 			
 			distance = plane1Distance(position);
-			if (distance < minimum) {
+			if (distance < minimum && distance > 0.0) {
 				minimum = distance;
 				i = 1;
 			}
 			
 			distance = plane2Distance(position);
-			if (distance < minimum) {
+			if (distance < minimum && distance > 0.0) {
 				minimum = distance;
 				i = 2;
 			}
 			
 			distance = plane3Distance(position);
-			if (distance < minimum) {
+			if (distance < minimum && distance > 0.0) {
 				minimum = distance;
 				i = 3;
 			}
 			
 			distance = plane4Distance(position);
-			if (distance < minimum) {
+			if (distance < minimum && distance > 0.0) {
 				minimum = distance;
 				i = 4;
 			}
 			
 			distance = plane5Distance(position);
-			if (distance < minimum) {
+			if (distance < minimum && distance > 0.0) {
 				minimum = distance;
 				i = 5;
 			}
 			
 			distance = plane6Distance(position);
-			if (distance < minimum) {
+			if (distance < minimum && distance > 0.0) {
 				minimum = distance;
 				i = 6;
 			}
 			
 			distance = sphereDistance(position);
-			if (distance < minimum) {
+			if (distance < minimum && distance > 0.0) {
 				minimum = distance;
 				i = 7;
 			}
 			
 		 	if (minimum < epsilon)
 		 		break;
-			 
-			t += minimum;
+		 	
+		 	t += minimum;
 		}
 		
-		if (i == 0)
+		
+		vec4 random = vec4(rand2n(seed), rand2n(seed + 1));
+		 	
+		
+		if (exp(-t / scatter1) < random.x) {
+			from = position - t * random.y * direction;
+			direction = scatter(seed);
+			scatter1 = 1e10;
+			i = 0;
+			continue;
+		}
+		
+		if (i == 0) {
 			total += luminance;
-		else {
+			break;
+		} else {
 			vec3 normal;
 				 
 			if (i == 1)
@@ -282,31 +319,47 @@ void main() {
 			else if (i == 7)
 				normal = sphereNormal(position);
 				
-			from = position + normal * epsilon;
-			vec3 emissive = vec3(0.1, 0.1, 0.1);
+			vec3 emissive = vec3(0, 0, 0);
 			float reflectivity = 0.0;
-			float albedo = 0.8;
+			float albedo = 0.9;
+			float transparency = 0.0;
+			float refraction = 1.5;
 			vec3 color = vec3(0.5, 0.5, 0.5);
 			
-			if (i == 6)
-				emissive = vec3(1, 1, 1) * 3.0;
-				
-			if (i == 5)
-				albedo = 0.1; 
+			if (i == 2) {
+				emissive = vec3(1, 1, 1) * 6.0;
+				albedo = 0.0;
+			}
 				
 			if (i == 7) {
+				transparency = 0.8;
 				albedo = 1.0;
-				reflectivity = 0.8;
-				emissive = vec3(0, 0, 0.5);
-				color = vec3(0.9, 0.5, 0.5);
+				reflectivity = 0.2;
+				//albedo = 0.;
+				//emissive = vec3(0, 0, 0.5);
+				color = vec3(1.0, 0.8, 0.8);
 			}
 			
 			total += luminance * emissive;
-			if (rand2n(seed).y < reflectivity)
-				direction = direction - 2.0 * dot(direction, normal) * normal;
-			else
-				direction = sample(normal, seed);
-			luminance = luminance * albedo * color;
+			
+			if (random.x > albedo)
+				break;
+				
+			luminance = luminance * color;
+			
+			if (random.y < transparency) { 
+				from = position - normal * epsilon;
+				direction = refract(direction, normal, 1.0/refraction);
+				
+				if (i == 7)
+					scatter1 = 5.0;
+			} else {
+				from = position + normal * epsilon;
+				if (random.z < reflectivity)
+					direction = reflect(direction, normal);
+				else
+					direction = sample(normal, seed + 2);
+			}
 		}
 	}
 	
