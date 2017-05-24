@@ -69,11 +69,11 @@ const int maxSteps = 128;
 const int bounces = 16;
 
 const vec3 target = vec3(0, 0, 0);
-const vec3 eye = vec3(8, 4, -1);
+const vec3 eye = vec3(1, 0.7, 1.1) * 4.0;
 
 const float field = PI / 4.0;
-const float focal = length(target - eye)*0.6;//3.5;
-const float aperture = 0.03 * focal;
+const float focal = length(target - eye);//3.5;
+const float aperture = 0.02 * focal;
 const vec3 look = normalize(target - eye);
 const vec3 qup = vec3(0, 1, 0);
 const vec3 up = qup - look * dot(look, qup);
@@ -226,7 +226,7 @@ void main() {
 	
 	vec3 luminance = vec3(1.0, 1.0, 1.0);
 	vec3 total = vec3(0, 0, 0);
-	float scatter1 = 1e10;
+	float scatter1 = MAX_VALUE;
 	
 	for (int k = 1; k <= bounces; k++) {
 		int seed = k;
@@ -281,6 +281,12 @@ void main() {
 				i = 7;
 			}
 			
+			distance = sphereDistance1(position);
+			if (distance < minimum && distance > 0.0) {
+				minimum = distance;
+				i = 8;
+			}
+			
 			if (minimum < epsilon)
 		 		break;
 		 	
@@ -323,17 +329,22 @@ void main() {
 			float reflectivity = 0.0;
 			float refraction = 1.5;
 			float scatter = 0.0;
-			vec3 color = vec3(1, 1, 1) * 0.9;
+			vec3 color = vec3(1, 1, 1) * 0.8;
 			
-			if (i == 1) {
+			/*if (i == 2) {
 				emissive = vec3(1, 1, 1) * 1.6;
 				color = vec3(0, 0, 0);
-			}
+			}*/
 				
 			if (i == 7) {
-				reflectivity = 0.1;
-				scatter = 2.0;
-				color = vec3(1, 0.9, 0.9);
+				reflectivity = 0.5;
+				scatter = 4.0;
+				color = vec3(1, 0.8, 0.8) * 0.9;
+			}
+			
+			if (i == 8) {
+				emissive = vec3(1, 1, 1) * 10.0;
+				color = vec3(0, 0, 0);
 			}
 			
 			total += luminance * emissive;
@@ -347,7 +358,7 @@ void main() {
 			 	from = position + normal * epsilon;
 			 	direction = sampleHemisphere(normal, seed);
 			} else {
-			 	from = position - normal * epsilon;
+			 	from = position - 2.0*normal * epsilon;
 				direction = refract(direction, normal, 1.0/refraction);
 				scatter1 = scatter;
 			}
