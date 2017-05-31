@@ -1,13 +1,12 @@
 precision highp float;
+
 uniform sampler2D texture;
-
-#define PI 3.14159
-#define MAX_VALUE 1e30
-
 uniform vec2 resolution;
 uniform float time;
-
 varying vec2 uv;
+
+const float PI = 3.14159;
+const float MAX_VALUE = 1e30;
 
 const float epsilon = 0.01;
 const int maxSteps = 64;
@@ -24,7 +23,7 @@ const vec3 qup = vec3(0, 1, 0);
 const vec3 up = qup - look * dot(look, qup);
 const vec3 right = cross(look, up);
 
-vec2 rand2n(int seed) {
+vec2 random(int seed) {
 	vec2 s = uv * (1.0 + time + float(seed));
 	// implementation based on: lumina.sourceforge.net/Tutorials/Noise.html
 	return vec2(
@@ -37,7 +36,7 @@ vec3 ortho(vec3 v) {
 	return abs(v.x) > abs(v.z) ? vec3(-v.y, v.x, 0.0) : vec3(0.0, -v.z, v.y);
 }
 
-vec3 sample(vec3 normal, float smoothness, vec2 noise) {
+vec3 wobble(vec3 normal, float smoothness, vec2 noise) {
 	vec3 o1 = normalize(ortho(normal));
 	vec3 o2 = normalize(cross(normal, o1));
 	noise.x *= 2.0 * PI;
@@ -183,7 +182,7 @@ vec3 plane6Normal(vec3 position) {
 
 void main() {
 	float aspectRatio = resolution.x / resolution.y;
-	vec2 noise = rand2n(0);
+	vec2 noise = random(0);
 
 	vec2 origin = noise.x * aperture * vec2(cos(noise.y * 2.0 * PI), sin(noise.y * 2.0 * PI));
 
@@ -332,17 +331,15 @@ void main() {
 		total += luminance * emissive;
 		luminance = luminance * color;
 
-		vec2 noise = rand2n(k);
+		vec2 noise = random(k);
 
-		normal = sample(normal, smoothness, noise);
+		normal = wobble(normal, smoothness, noise);
 
 		if (noise.y < transmittance) {
 			from = from - normal * epsilon;
-
 			direction = refract(direction, normal, 1.0 / refraction);
 		} else {
 			from = from + normal * epsilon;
-
 			direction = reflect(direction, normal);
 		}
 	}
