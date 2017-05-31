@@ -3,14 +3,6 @@ declare function require(name: string): string;
 const width = 512;
 const height = 512;
 
-/*
- TODO
-
- Camera control
- GLSL import
-
- */
-
 const canvas = document.createElement("canvas");
 canvas.width = width;
 canvas.height = height;
@@ -75,14 +67,17 @@ gl.useProgram(program);
 const resolution = gl.getUniformLocation(program, "resolution");
 gl.uniform2f(resolution, width, height);
 
-const time = gl.getUniformLocation(program, "time");
-gl.uniform1f(time, 0);
-
 const position = gl.getAttribLocation(program, "position");
 gl.enableVertexAttribArray(position);
 gl.vertexAttribPointer(position, 2, WebGLRenderingContext.FLOAT, false, 0, 0);
 
 gl.viewport(0, 0, width, height);
+
+const mouse = { x: 0, y: 0};
+canvas.addEventListener("mousemove", event => {
+	mouse.x = event.x / width * 2.0 - 1.0;
+	mouse.y = -event.y / width * 2.0 + 1.0;
+});
 
 function step(t: number, odd: Boolean = false) {
 	const read = textures[odd ? 0 : 1];
@@ -92,7 +87,8 @@ function step(t: number, odd: Boolean = false) {
 	gl.bindTexture(WebGLRenderingContext.TEXTURE_2D, read);
 	gl.bindFramebuffer(WebGLRenderingContext.FRAMEBUFFER, framebuffer);
 	gl.framebufferTexture2D(WebGLRenderingContext.FRAMEBUFFER, WebGLRenderingContext.COLOR_ATTACHMENT0, WebGLRenderingContext.TEXTURE_2D, write, 0);
-	gl.uniform1f(time, t / 1000.0);
+	gl.uniform1f(gl.getUniformLocation(program, "time"), t / 1000.0);
+	gl.uniform2f(gl.getUniformLocation(program, "mouse"), mouse.x, mouse.y);
 	gl.drawElements(WebGLRenderingContext.TRIANGLES, indices.length, WebGLRenderingContext.UNSIGNED_SHORT, 0);
 
 	gl.useProgram(renderProgram);

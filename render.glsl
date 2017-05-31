@@ -2,26 +2,16 @@ precision highp float;
 
 uniform sampler2D texture;
 uniform vec2 resolution;
+uniform vec2 mouse;
 uniform float time;
 varying vec2 uv;
 
 const float PI = 3.14159;
 const float MAX_VALUE = 1e30;
 
-const float epsilon = 0.001;
-const int maxSteps = 128;
-const int bounces = 24;
-
-const vec3 target = vec3(0, 0, 0);
-const vec3 eye = vec3(9, 6, 8) * 0.8;
-
-const float field = PI / 4.0;
-const float focal = length(target - eye);
-const float aperture = 0.03 * focal;
-const vec3 look = normalize(target - eye);
-const vec3 qup = vec3(0, 1, 0);
-const vec3 up = qup - look * dot(look, qup);
-const vec3 right = cross(look, up);
+const float epsilon = 0.01;
+const int maxSteps = 50;
+const int bounces = 12;
 
 struct Closest {
     int object;
@@ -49,7 +39,7 @@ vec2 random(int seed) {
 }
 
 vec3 ortho(vec3 v) {
-	//  See : http://lolengine.net/blog/2013/09/21/picking-orthogonal-vector-combing-coconuts
+	// See: http://lolengine.net/blog/2013/09/21/picking-orthogonal-vector-combing-coconuts
 	return abs(v.x) > abs(v.z) ? vec3(-v.y, v.x, 0.0) : vec3(0.0, -v.z, v.y);
 }
 
@@ -62,14 +52,30 @@ vec3 calculateSample(vec3 normal, float smoothness, vec2 noise) {
 	return q * (cos(noise.x) * o1  + sin(noise.x) * o2) + noise.y * normal;
 }
 
+vec3 spherical(vec2 angle) {
+    return vec3(sin(angle.y) * cos(angle.x), sin(angle.y) * sin(angle.x), cos(angle.y));
+}
+
 void main() {
+    vec3 target = vec3(0, 0, 0);
+    float cameraDistance = 15.0;
+    vec2 cameraAngle = vec2(mouse.x * PI, (mouse.y + 1.0) * 0.5 * PI);
+    vec3 eye = cameraDistance * spherical(cameraAngle);
+
+    float field = 60.0 * PI / 180.0;
+    float focal = length(target - eye);
+    float aperture = 0.04 * focal;
+    vec3 look = normalize(target - eye);
+    vec3 up = normalize(target - spherical(vec2(cameraAngle.x, cameraAngle.y + PI * 0.5)));
+    vec3 right = cross(look, up);
 	float aspectRatio = resolution.x / resolution.y;
+
 	vec2 noise = random(0);
 
 	vec2 origin = noise.x * aperture * vec2(cos(noise.y * 2.0 * PI), sin(noise.y * 2.0 * PI));
 
 	vec2 px = uv + (noise * 2.0 - 1.0) / resolution.x;
-	vec3 screen = eye + (look + tan(field) * (px.x * aspectRatio * right + px.y * up)) * focal;
+	vec3 screen = eye + (look + tan(field * 0.5) * (px.x * aspectRatio * right + px.y * up)) * focal;
 
 	vec3 from = eye + right * origin.x + up * origin.y;
 	vec3 direction = normalize(screen - from);
@@ -120,7 +126,7 @@ void main() {
 		}
 	}
 
-	vec4 original = texture2D(texture, uv * 0.5 - 0.5);
+	vec4 original = texture2D(texture, uv * 0.5 - 0.5) * 0.95;
 	gl_FragColor = vec4(original.xyz + total, original.w + 1.0);
 }
 
@@ -176,7 +182,7 @@ vec3 torusNormal(vec3 position) {
 }
 
 float plane1Distance(vec3 position) {
-	return dot(position, vec3(0, 1, 0)) + 0.0;
+	return dot(position, vec3(0, 1, 0)) + 20.0;
 }
 
 vec3 plane1Normal(vec3 position) {
@@ -190,7 +196,7 @@ vec3 plane1Normal(vec3 position) {
 }
 
 float plane2Distance(vec3 position) {
-	return dot(position, vec3(0, -1, 0)) + 100.0;
+	return dot(position, vec3(0, -1, 0)) + 20.0;
 }
 
 vec3 plane2Normal(vec3 position) {
@@ -204,7 +210,7 @@ vec3 plane2Normal(vec3 position) {
 }
 
 float plane3Distance(vec3 position) {
-	return dot(position, vec3(0, 0, 1)) + 100.0;
+	return dot(position, vec3(0, 0, 1)) + 20.0;
 }
 
 vec3 plane3Normal(vec3 position) {
@@ -218,7 +224,7 @@ vec3 plane3Normal(vec3 position) {
 }
 
 float plane4Distance(vec3 position) {
-	return dot(position, vec3(0, 0, -1)) + 100.0;
+	return dot(position, vec3(0, 0, -1)) + 20.0;
 }
 
 vec3 plane4Normal(vec3 position) {
@@ -232,7 +238,7 @@ vec3 plane4Normal(vec3 position) {
 }
 
 float plane5Distance(vec3 position) {
-	return dot(position, vec3(-1, 0, 0)) + 100.0;
+	return dot(position, vec3(-1, 0, 0)) + 20.0;
 }
 
 vec3 plane5Normal(vec3 position) {
@@ -246,7 +252,7 @@ vec3 plane5Normal(vec3 position) {
 }
 
 float plane6Distance(vec3 position) {
-	return dot(position, vec3(1, 0, 0)) + 100.0;
+	return dot(position, vec3(1, 0, 0)) + 20.0;
 }
 
 vec3 plane6Normal(vec3 position) {
@@ -302,11 +308,11 @@ Closest calculateClosest(vec3 position) {
         closest.object = 6;
     }
 
-    distance = abs(spheresDistance(position));
+    /*distance = abs(spheresDistance(position));
     if (distance < closest.distance) {
         closest.distance = distance;
         closest.object = 7;
-    }
+    }*/
 
     distance = abs(sphereDistance(position));
     if (distance < closest.distance) {
@@ -366,16 +372,16 @@ Material material(int object) {
         material.color = vec3(1, 1, 1) * 0.9;
     }
 
-    if (object == 9) {
-        material.smoothness = 0.9;
-        material.color = vec3(0.8, 0.5, 0.5) * 1.0;
-    }
-
     if (object == 8) {
-        material.transmittance = 0.98;
-        material.smoothness = 0.98;
+        material.transmittance = 0.94;
+        material.smoothness = 0.94;
         material.color = vec3(0.8, 0.8, 1.0);
         material.refraction = 1.4;
+    }
+
+    if (object == 9) {
+        material.smoothness = 0.99;
+        material.color = vec3(0.8, 0.5, 0.5) * 1.0;
     }
 
     return material;
