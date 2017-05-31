@@ -263,6 +263,7 @@ Closest calculateClosest(vec3 position) {
     Closest closest;
     float distance;
 
+    closest.object = 0;
     closest.distance = MAX_VALUE;
 
     distance = abs(plane1Distance(position));
@@ -346,15 +347,18 @@ vec3 calculateNormal(int object, vec3 position) {
 
 Material material(int object) {
     Material material;
+    material.transmittance = 0.0;
+    material.smoothness = 0.0;
     material.refraction = 1.0;
     material.color = vec3(1, 1, 1);
+    material.emissivity = vec3(0, 0, 0);
 
     if (object >= 1 && object <= 6) {
         material.color = vec3(1, 1, 1) * 0.8;
     }
 
     if (object == 2) {
-        material.emissivity = vec3(1, 1, 1) * 1.0;
+        material.emissivity = vec3(1, 1, 1) * 2.0;
         material.color = vec3(0, 0, 0);
     }
 
@@ -369,7 +373,7 @@ Material material(int object) {
 
     if (object == 9) {
         material.transmittance = 1.0;
-        material.smoothness = 1.0;
+        material.smoothness = 0.9;
         material.color = vec3(0.8, 0.8, 1.0);
         material.refraction = 1.4;
     }
