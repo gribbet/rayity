@@ -69,7 +69,7 @@ const int maxSteps = 128;
 const int bounces = 16;
 
 const vec3 target = vec3(0, 0, 0);
-const vec3 eye = vec3(4, 15, -4) * 0.9;
+const vec3 eye = vec3(9, 15, 9); 
 
 const float field = PI / 4.0;
 const float focal = length(target - eye);//3.5;
@@ -92,20 +92,13 @@ vec3 ortho(vec3 v) {
 	return abs(v.x) > abs(v.z) ? vec3(-v.y, v.x, 0.0) : vec3(0.0, -v.z, v.y);
 }
 
-vec3 sampleHemisphere(vec3 normal, int seed) {
+vec3 sample(vec3 normal, float smoothness, vec2 noise) {
 	vec3 o1 = normalize(ortho(normal));
 	vec3 o2 = normalize(cross(normal, o1));
-	vec2 random = rand2n(seed);
-	random.x *= 2.0 * PI;
-	random.y = sqrt(random.y);
-	float q = sqrt(1.0 - random.y * random.y);
-	return q * (cos(random.x) * o1  + sin(random.x) * o2) + random.y * normal;
-}
-
-vec3 sampleSphere(int seed) {
-	vec2 random = rand2n(seed);
-	vec2 angle = vec2(1.0 - 2.0 * random.x, 2.0 * PI * random.y);
-	return vec3(cos(angle.x) * sin(angle.y), sin(angle.x) * sin(angle.y), cos(angle.y));
+	noise.x *= 2.0 * PI;
+	noise.y = sqrt(smoothness + (1.0 - smoothness) * noise.y);
+	float q = sqrt(1.0 - noise.y * noise.y);
+	return q * (cos(noise.x) * o1  + sin(noise.x) * o2) + noise.y * normal;
 }
 
 float sphereDistance3(vec3 position) {
@@ -124,8 +117,8 @@ float sphereDistance1(vec3 position) {
 }
 
 float sphereDistance(vec3 position) {
-	position.x = mod(position.x, 2.0) - 1.0;
-	position.z = mod(position.z, 2.0) - 1.0;
+	position.x = mod(position.x, 1.0) - 0.5;
+	position.z = mod(position.z, 1.0) - 0.5;
 	return sphereDistance1(position);
 }
 
@@ -230,7 +223,7 @@ vec3 plane5Normal(vec3 position) {
 }
 
 float plane6Distance(vec3 position) {
-	return dot(position, vec3(1, 0, 0)) + 100.0;
+	return dot(position, vec3(1, 0, 0)) + 100.0; 
 }
 
 vec3 plane6Normal(vec3 position) {
@@ -255,19 +248,13 @@ void main() {
 	vec3 from = eye + right * origin.x + up * origin.y;
 	vec3 direction = normalize(screen - from);
 	
-	vec3 luminance = vec3(1.0, 1.0, 1.0);
+	vec3 luminance = vec3(1, 1, 1);
 	vec3 total = vec3(0, 0, 0);
-	int i3 = 0;
-	bool blah = false;
 	
 	for (int k = 1; k <= bounces; k++) {
-		int seed = k;
 		float t = 0.0;
 		int i = 0;
-		vec3 position = from;// + direction * t;
-		
-		if (blah)
-			break;
+		vec3 position = from;
 
 		for (int j = 1; j <= maxSteps; j++) {
 			float minimum = MAX_VALUE;
@@ -310,43 +297,35 @@ void main() {
 			}
 			
 			distance = abs(sphereDistance2(position));
-			if (distance < minimum && distance > epsilon*0.5) {
+			if (distance < minimum) {
 				minimum = distance;
 				i = 7;
 			}
 			
 			distance = abs(sphereDistance(position));
-			if (distance < minimum && distance > epsilon*0.5) {
+			if (distance < minimum) {
 				minimum = distance;
 				i = 8;
 			}
 			
 			distance = abs(sphereDistance3(position));
-			if (distance < minimum && distance > epsilon*0.5) {
+			if (distance < minimum) {
 				minimum = distance;
 				i = 9;
 			}
-			
-			if (i3 == 7 || i3 == 9) {
-				if (minimum > 0.07) minimum = 0.07;
-			}
-			
-			if (minimum < epsilon)
-				break;
 		 	
 		 	t += minimum * 0.5;
 			position = from + direction * t;
 			
-			
+			if (minimum < epsilon)
+				break;
 		}
 		
 		from = position;
 		
-		if (i == 0) {
-			//total += luminance;
+		if (i == 0)
 			break;
-		}
-		
+			
 		vec3 normal;
 			 
 		if (i == 1)
@@ -365,104 +344,63 @@ void main() {
 			normal = sphereNormal2(position);
 		else if (i == 8)
 			normal = sphereNormal(position);
-		else if (i == 9)
+		else if (i == 9) {
 			normal = sphereNormal3(position);
+		}
 			
-			
-		vec3 emissive = vec3(0, 0, 0);
 		float reflectance = 1.0;
-		float refraction = 1.0;//1.4;
-		float diffusivity = 1.0;
-		vec3 color = vec3(1, 1, 1) * 1.0;
+		float smoothness = 1.0;
+		float refraction = 1.0;
+		vec3 color = vec3(1, 1, 1);
+		vec3 emissive = vec3(0, 0, 0);
 			
-		if ( i == 7 || i == 9) {
-			reflectance = 0.0;
-			diffusivity = 0.0;
-			color = vec3(0.99, 0.99, 1.0);
-			//emissive = vec3(1, 0, 0);
+		if (i == 7) {
+			reflectance = 0.1;
+			smoothness = 0.0;
+			color = vec3(0.8, 0.8, 1.0);
+			refraction = 1.4;
 		}
 		
-		/*if (i == 9) {
+		if (i == 9) {
 			reflectance = 1.0;
-			diffusivity = 1.0;
-			color = vec3(1, 1, 1);//vec3(1.0, 0.8, 0.8) * 0.5;
-		}*/
-		
-		if (i >= 1 && i <= 6) {
-			reflectance = 1.0;
-			diffusivity = 1.0;
-			color = vec3(1, 1, 1) * 0.5;
-		}
-		
-		if (i == 2) {
-			emissive = vec3(1, 1, 1) * 1.0;
-			color = vec3(0, 0, 0);
+			smoothness = 0.98;
+			color = vec3(1.0, 0.8, 0.8) * 0.7;
 		}
 		
 		if (i == 8) {
 			reflectance = 1.0;
-			diffusivity = 1.0;
-			color = vec3(1, 0.5, 0.5) * 1.0;
-			//color = vec3(0, 0, 0);
-			//emissive = vec3(1, 1, 1) * 1.0;
+			smoothness = 0.0;
+			color = vec3(1, 1, 1) * 0.8;
 		}
 		
-		
-		vec2 test = rand2n(seed);
-		vec2 test2 = rand2n(seed + 76);
-		
-		float k2 = 0.0;
-		
-		if (i3 == 7 || i3 == 9)
-			k2 = 0.8;
-		
-		if (k2 > 0.0) {
-			if (test2.x < 1.0 - exp(-k2 * t)) {
-				luminance = luminance * vec3(0.99, 0.99, 1)* 1.0;
-				
-				from = from + (test2.y - 1.0) * t * direction;
-				
-				direction = sampleSphere(seed + 7);
-				//direction = sampleHemisphere(direction, seed + 7);
-				
-				continue;
-			} 
+		if (i >= 1 && i <= 6) {
+			reflectance = 1.0;
+			smoothness = 0.0;
+			color = vec3(1, 1, 1) * 0.5;
 		}
 		
-		total += luminance * emissive;
+		if (i == 2) {
+			emissive = vec3(1, 1, 1) * 2.0;
+			color = vec3(0, 0, 0);
+		}
 		
-		bool flip = false;
-		
-		if (dot(normal, direction) > 0.0) {
+		if (dot(normal, direction) > 0.0)
 			normal = -normal;
-			flip = true;
-		}
+				
+		total += luminance * emissive;
+		luminance = luminance * color;
 		
-		if (test.x < reflectance) {
-			luminance = luminance * color;
+		vec2 noise = rand2n(k);
+		normal = sample(normal, smoothness, noise);
 		
+		if (noise.y < reflectance) {
 			from = from + normal * epsilon;
 			
-			if (test.y < diffusivity) 
-				direction = sampleHemisphere(normal, seed + 2);
-			else
-				direction = reflect(direction, normal);
+			direction = reflect(direction, normal);
 		} else {
-			//luminance = luminance * color;
-			if (!flip)
-		 		i3 = i;
-		 	else 
-		 		i3 = 0;
-		 		
-			//from = from + vec3(test.x, test.y, test2.x) * epsilon;
-		 	
 			from = from - normal * epsilon;
-			//direction = -normal;
 			
-			if (test.y < diffusivity)
-				direction = sampleHemisphere(-normal, seed + 4);
-			else
-				direction = refract(direction, normal, 1.0/refraction);
+			direction = refract(direction, normal, 1.0 / refraction);
 		}
 	}
 	
