@@ -64,9 +64,9 @@ uniform float time;
 
 varying vec2 uv;
 
-const float epsilon = 0.005;
-const int maxSteps = 128;
-const int bounces = 16;
+const float epsilon = 0.01;
+const int maxSteps = 64;
+const int bounces = 12;
 
 const vec3 target = vec3(0, 0, 0);
 const vec3 eye = vec3(9, 15, 9); 
@@ -102,7 +102,7 @@ vec3 sample(vec3 normal, float smoothness, vec2 noise) {
 }
 
 float sphereDistance3(vec3 position) {
-	return length(position) - 3.0;
+	return length(position) - 2.0;
 }
 
 float sphereDistance2( vec3 p )
@@ -153,7 +153,7 @@ vec3 sphereNormal3(vec3 position) {
 }
 
 float plane1Distance(vec3 position) {
-	return dot(position, vec3(0, 1, 0)) + 100.0;
+	return dot(position, vec3(0, 1, 0)) + 0.0;
 }
 
 vec3 plane1Normal(vec3 position) {
@@ -314,11 +314,13 @@ void main() {
 				i = 9;
 			}
 		 	
-		 	t += minimum * 0.5;
+		 	t += minimum;
 			position = from + direction * t;
 			
 			if (minimum < epsilon)
 				break;
+				
+			t -= epsilon;
 		}
 		
 		from = position;
@@ -348,40 +350,35 @@ void main() {
 			normal = sphereNormal3(position);
 		}
 			
-		float reflectance = 1.0;
-		float smoothness = 1.0;
+		float transmittance = 0.0;
+		float smoothness = 0.0;
 		float refraction = 1.0;
 		vec3 color = vec3(1, 1, 1);
 		vec3 emissive = vec3(0, 0, 0);
-			
-		if (i == 7) {
-			reflectance = 0.1;
-			smoothness = 0.0;
-			color = vec3(0.8, 0.8, 1.0);
-			refraction = 1.4;
-		}
-		
-		if (i == 9) {
-			reflectance = 1.0;
-			smoothness = 0.98;
-			color = vec3(1.0, 0.8, 0.8) * 0.7;
-		}
-		
-		if (i == 8) {
-			reflectance = 1.0;
-			smoothness = 0.0;
-			color = vec3(1, 1, 1) * 0.8;
-		}
 		
 		if (i >= 1 && i <= 6) {
-			reflectance = 1.0;
-			smoothness = 0.0;
-			color = vec3(1, 1, 1) * 0.5;
+			color = vec3(1, 1, 1) * 0.8;
 		}
 		
 		if (i == 2) {
 			emissive = vec3(1, 1, 1) * 2.0;
 			color = vec3(0, 0, 0);
+		}
+		
+		if (i == 7) {
+			transmittance = 0.98;
+			smoothness = 0.5;
+			color = vec3(0.8, 0.8, 1.0);
+			refraction = 1.4;
+		}
+		
+		if (i == 8) {
+			color = vec3(1, 1, 1) * 0.9;
+		}
+		
+		if (i == 9) {
+			smoothness = 0.999;
+			color = vec3(1.0, 0.8, 0.8) * 0.7;
 		}
 		
 		if (dot(normal, direction) > 0.0)
@@ -391,16 +388,17 @@ void main() {
 		luminance = luminance * color;
 		
 		vec2 noise = rand2n(k);
+		
 		normal = sample(normal, smoothness, noise);
 		
-		if (noise.y < reflectance) {
-			from = from + normal * epsilon;
-			
-			direction = reflect(direction, normal);
-		} else {
+		if (noise.y < transmittance) {
 			from = from - normal * epsilon;
 			
 			direction = refract(direction, normal, 1.0 / refraction);
+		} else {
+			from = from + normal * epsilon;
+			
+			direction = reflect(direction, normal);
 		}
 	}
 	
