@@ -11,6 +11,9 @@ module.exports = {
 		rules: [{
 			test: /\.ts?$/,
 			loader: "ts-loader"
+		}, {
+			test: /\.glsl?$/,
+			loader: "raw-loader"
 		}]
 	}
 };
