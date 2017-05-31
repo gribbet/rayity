@@ -73,10 +73,17 @@ gl.vertexAttribPointer(position, 2, WebGLRenderingContext.FLOAT, false, 0, 0);
 
 gl.viewport(0, 0, width, height);
 
-const mouse = { x: 0, y: 0};
+let mouse = { x: 0.25, y: -0.25};
+let clicked = false;
+
+canvas.addEventListener("mousedown", () => clicked = true);
+document.addEventListener("mouseup", () => clicked = false);
+
 canvas.addEventListener("mousemove", event => {
-	mouse.x = event.x / width * 2.0 - 1.0;
-	mouse.y = -event.y / width * 2.0 + 1.0;
+	if (clicked) {
+		mouse.x = event.x / width * 2.0 - 1.0;
+		mouse.y = -event.y / width * 2.0 + 1.0;
+	}
 });
 
 function step(t: number, odd: Boolean = false) {
@@ -89,6 +96,7 @@ function step(t: number, odd: Boolean = false) {
 	gl.framebufferTexture2D(WebGLRenderingContext.FRAMEBUFFER, WebGLRenderingContext.COLOR_ATTACHMENT0, WebGLRenderingContext.TEXTURE_2D, write, 0);
 	gl.uniform1f(gl.getUniformLocation(program, "time"), t / 1000.0);
 	gl.uniform2f(gl.getUniformLocation(program, "mouse"), mouse.x, mouse.y);
+	gl.uniform1i(gl.getUniformLocation(program, "clicked"), clicked ? 1 : 0);
 	gl.drawElements(WebGLRenderingContext.TRIANGLES, indices.length, WebGLRenderingContext.UNSIGNED_SHORT, 0);
 
 	gl.useProgram(renderProgram);

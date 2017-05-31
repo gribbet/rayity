@@ -3,6 +3,7 @@ precision highp float;
 uniform sampler2D texture;
 uniform vec2 resolution;
 uniform vec2 mouse;
+uniform bool clicked;
 uniform float time;
 varying vec2 uv;
 
@@ -11,7 +12,7 @@ const float MAX_VALUE = 1e30;
 
 const float epsilon = 0.01;
 const int maxSteps = 50;
-const int bounces = 12;
+const int bounces = 20;
 
 struct Closest {
     int object;
@@ -59,7 +60,7 @@ vec3 spherical(vec2 angle) {
 void main() {
     vec3 target = vec3(0, 0, 0);
     float cameraDistance = 15.0;
-    vec2 cameraAngle = vec2(mouse.x * PI, (mouse.y + 1.0) * 0.5 * PI);
+    vec2 cameraAngle = vec2(-mouse.x * PI, (mouse.y + 1.0) * 0.5 * PI);
     vec3 eye = cameraDistance * spherical(cameraAngle);
 
     float field = 60.0 * PI / 180.0;
@@ -126,7 +127,11 @@ void main() {
 		}
 	}
 
-	vec4 original = texture2D(texture, uv * 0.5 - 0.5) * 0.95;
+	vec4 original = texture2D(texture, uv * 0.5 - 0.5);
+
+    if (clicked)
+        original *= 0.9;
+
 	gl_FragColor = vec4(original.xyz + total, original.w + 1.0);
 }
 
@@ -136,7 +141,7 @@ float spheresDistance1(vec3 position) {
 
 float spheresDistance(vec3 position) {
 	position.x = mod(position.x, 1.0) - 0.5;
-	position.z = mod(position.z, 1.0) - 0.5;
+	position.y = mod(position.y, 1.0) - 0.5;
 	return spheresDistance1(position);
 }
 
@@ -308,11 +313,11 @@ Closest calculateClosest(vec3 position) {
         closest.object = 6;
     }
 
-    /*distance = abs(spheresDistance(position));
+    distance = abs(spheresDistance(position));
     if (distance < closest.distance) {
         closest.distance = distance;
         closest.object = 7;
-    }*/
+    }
 
     distance = abs(sphereDistance(position));
     if (distance < closest.distance) {
@@ -360,7 +365,7 @@ Material material(int object) {
     material.emissivity = vec3(0, 0, 0);
 
     if (object >= 1 && object <= 6) {
-        material.color = vec3(1, 1, 1) * 0.8;
+        material.color = vec3(1, 1, 1) * 0.99;
     }
 
     if (object == 2) {
@@ -368,20 +373,24 @@ Material material(int object) {
         material.color = vec3(0, 0, 0);
     }
 
+    if (object == 9) {
+        material.color = vec3(1, 1, 1);
+        material.smoothness = 0.1;
+        material.transmittance = 0.9;
+        material.refraction = 1.6;
+        material.color = vec3(0.8, 1.0, 0.8);
+    }
+
     if (object == 7) {
-        material.color = vec3(1, 1, 1) * 0.9;
+        material.transmittance = 0.95;
+        material.smoothness = 1.0;
+        material.color = vec3(0.8, 0.8, 1.0);
+        material.refraction = 1.6;
     }
 
     if (object == 8) {
-        material.transmittance = 0.94;
-        material.smoothness = 0.94;
-        material.color = vec3(0.8, 0.8, 1.0);
-        material.refraction = 1.4;
-    }
-
-    if (object == 9) {
         material.smoothness = 0.99;
-        material.color = vec3(0.8, 0.5, 0.5) * 1.0;
+        material.color = vec3(0.8, 0.4, 0.4) * 1.0;
     }
 
     return material;
