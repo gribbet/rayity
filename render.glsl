@@ -8,12 +8,12 @@ varying vec2 uv;
 const float PI = 3.14159;
 const float MAX_VALUE = 1e30;
 
-const float epsilon = 0.01;
+const float epsilon = 0.001;
 const int maxSteps = 64;
 const int bounces = 12;
 
 const vec3 target = vec3(0, 0, 0);
-const vec3 eye = vec3(9, 15, 9);
+const vec3 eye = vec3(9, 15, 8);
 
 const float field = PI / 4.0;
 const float focal = length(target - eye);
@@ -22,6 +22,23 @@ const vec3 look = normalize(target - eye);
 const vec3 qup = vec3(0, 1, 0);
 const vec3 up = qup - look * dot(look, qup);
 const vec3 right = cross(look, up);
+
+struct Closest {
+    int object;
+    float distance;
+};
+
+struct Material {
+    float transmittance;
+    float smoothness;
+    float refraction;
+    vec3 color;
+    vec3 emissivity;
+};
+
+Closest calculateClosest(vec3 position);
+vec3 calculateNormal(int object, vec3 position);
+Material material(int object);
 
 vec2 random(int seed) {
 	vec2 s = uv * (1.0 + time + float(seed));
@@ -36,7 +53,7 @@ vec3 ortho(vec3 v) {
 	return abs(v.x) > abs(v.z) ? vec3(-v.y, v.x, 0.0) : vec3(0.0, -v.z, v.y);
 }
 
-vec3 wobble(vec3 normal, float smoothness, vec2 noise) {
+vec3 calculateSample(vec3 normal, float smoothness, vec2 noise) {
 	vec3 o1 = normalize(ortho(normal));
 	vec3 o2 = normalize(cross(normal, o1));
 	noise.x *= 2.0 * PI;
@@ -45,25 +62,90 @@ vec3 wobble(vec3 normal, float smoothness, vec2 noise) {
 	return q * (cos(noise.x) * o1  + sin(noise.x) * o2) + noise.y * normal;
 }
 
-float sphereDistance3(vec3 position) {
-	return length(position) - 2.0;
+void main() {
+	float aspectRatio = resolution.x / resolution.y;
+	vec2 noise = random(0);
+
+	vec2 origin = noise.x * aperture * vec2(cos(noise.y * 2.0 * PI), sin(noise.y * 2.0 * PI));
+
+	vec2 px = uv + (noise * 2.0 - 1.0) / resolution.x;
+	vec3 screen = eye + (look + tan(field) * (px.x * aspectRatio * right + px.y * up)) * focal;
+
+	vec3 from = eye + right * origin.x + up * origin.y;
+	vec3 direction = normalize(screen - from);
+
+	vec3 luminance = vec3(1, 1, 1);
+	vec3 total = vec3(0, 0, 0);
+
+	for (int bounce = 1; bounce <= bounces; bounce++) {
+	    Closest closest;
+		vec3 position = from;
+		float distance = 0.0;
+
+		for (int step = 1; step <= maxSteps; step++) {
+			closest = calculateClosest(position);
+
+		 	distance += closest.distance;
+			position = from + direction * distance;
+
+			if (closest.distance < epsilon)
+				break;
+
+			distance -= epsilon;
+		}
+
+		if (closest.object == 0)
+		    break;
+
+        Material material = material(closest.object);
+
+		total += luminance * material.emissivity;
+		luminance *= material.color;
+
+		vec3 normal = calculateNormal(closest.object, position);
+
+		if (dot(normal, direction) > 0.0)
+			normal = -normal;
+
+		vec2 noise = random(bounce);
+
+		normal = calculateSample(normal, material.smoothness, noise);
+
+		if (noise.y < material.transmittance) {
+			from = position - normal * epsilon;
+			direction = refract(direction, normal, 1.0 / material.refraction);
+		} else {
+			from = position + normal * epsilon;
+			direction = reflect(direction, normal);
+		}
+	}
+
+	vec4 original = texture2D(texture, uv * 0.5 - 0.5);
+	gl_FragColor = vec4(original.xyz + total, original.w + 1.0);
 }
 
-float sphereDistance2( vec3 p )
-{
-vec2 t = vec2(6.0, 1.0);
-  vec2 q = vec2(length(p.xz)-t.x,p.y);
-  return length(q)-t.y;
-}
-
-float sphereDistance1(vec3 position) {
+float spheresDistance1(vec3 position) {
 	return length(position) - 0.45;
 }
 
-float sphereDistance(vec3 position) {
+float spheresDistance(vec3 position) {
 	position.x = mod(position.x, 1.0) - 0.5;
 	position.z = mod(position.z, 1.0) - 0.5;
-	return sphereDistance1(position);
+	return spheresDistance1(position);
+}
+
+vec3 spheresNormal(vec3 position) {
+	return normalize(vec3(
+		spheresDistance(position + vec3(epsilon, 0, 0)) -
+		spheresDistance(position - vec3(epsilon, 0, 0)),
+		spheresDistance(position + vec3(0, epsilon, 0)) -
+		spheresDistance(position - vec3(0, epsilon, 0)),
+		spheresDistance(position + vec3(0, 0, epsilon)) -
+		spheresDistance(position - vec3(0, 0, epsilon))));
+}
+
+float sphereDistance(vec3 position) {
+	return length(position) - 2.0;
 }
 
 vec3 sphereNormal(vec3 position) {
@@ -76,24 +158,21 @@ vec3 sphereNormal(vec3 position) {
 		sphereDistance(position - vec3(0, 0, epsilon))));
 }
 
-vec3 sphereNormal2(vec3 position) {
-	return normalize(vec3(
-		sphereDistance2(position + vec3(epsilon, 0, 0)) -
-		sphereDistance2(position - vec3(epsilon, 0, 0)),
-		sphereDistance2(position + vec3(0, epsilon, 0)) -
-		sphereDistance2(position - vec3(0, epsilon, 0)),
-		sphereDistance2(position + vec3(0, 0, epsilon)) -
-		sphereDistance2(position - vec3(0, 0, epsilon))));
+
+float torusDistance(vec3 position) {
+    vec2 dimensions = vec2(6.0, 1.0);
+    vec2 q = vec2(length(position.xz) - dimensions.x, position.y);
+    return length(q) - dimensions.y;
 }
 
-vec3 sphereNormal3(vec3 position) {
+vec3 torusNormal(vec3 position) {
 	return normalize(vec3(
-		sphereDistance3(position + vec3(epsilon, 0, 0)) -
-		sphereDistance3(position - vec3(epsilon, 0, 0)),
-		sphereDistance3(position + vec3(0, epsilon, 0)) -
-		sphereDistance3(position - vec3(0, epsilon, 0)),
-		sphereDistance3(position + vec3(0, 0, epsilon)) -
-		sphereDistance3(position - vec3(0, 0, epsilon))));
+		torusDistance(position + vec3(epsilon, 0, 0)) -
+		torusDistance(position - vec3(epsilon, 0, 0)),
+		torusDistance(position + vec3(0, epsilon, 0)) -
+		torusDistance(position - vec3(0, epsilon, 0)),
+		torusDistance(position + vec3(0, 0, epsilon)) -
+		torusDistance(position - vec3(0, 0, epsilon))));
 }
 
 float plane1Distance(vec3 position) {
@@ -180,170 +259,121 @@ vec3 plane6Normal(vec3 position) {
 		plane6Distance(position - vec3(0, 0, epsilon))));
 }
 
-void main() {
-	float aspectRatio = resolution.x / resolution.y;
-	vec2 noise = random(0);
+Closest calculateClosest(vec3 position) {
+    Closest closest;
+    float distance;
 
-	vec2 origin = noise.x * aperture * vec2(cos(noise.y * 2.0 * PI), sin(noise.y * 2.0 * PI));
+    closest.distance = MAX_VALUE;
 
-	vec2 px = uv + (noise * 2.0 - 1.0) / resolution.x;
-	vec3 screen = eye + (look + tan(field) * (px.x * aspectRatio * right + px.y * up)) * focal;
+    distance = abs(plane1Distance(position));
+    if (distance < closest.distance) {
+        closest.distance = distance;
+        closest.object = 1;
+    }
 
-	vec3 from = eye + right * origin.x + up * origin.y;
-	vec3 direction = normalize(screen - from);
+    distance = abs(plane2Distance(position));
+    if (distance < closest.distance) {
+        closest.distance = distance;
+        closest.object = 2;
+    }
 
-	vec3 luminance = vec3(1, 1, 1);
-	vec3 total = vec3(0, 0, 0);
+    distance = abs(plane3Distance(position));
+    if (distance < closest.distance) {
+        closest.distance = distance;
+        closest.object = 3;
+    }
 
-	for (int k = 1; k <= bounces; k++) {
-		float t = 0.0;
-		int i = 0;
-		vec3 position = from;
+    distance = abs(plane4Distance(position));
+    if (distance < closest.distance) {
+        closest.distance = distance;
+        closest.object = 4;
+    }
 
-		for (int j = 1; j <= maxSteps; j++) {
-			float minimum = MAX_VALUE;
-			float distance;
+    distance = abs(plane5Distance(position));
+    if (distance < closest.distance) {
+        closest.distance = distance;
+        closest.object = 5;
+    }
 
-			distance = abs(plane1Distance(position));
-			if (distance < minimum) {
-				minimum = distance;
-				i = 1;
-			}
+    distance = abs(plane6Distance(position));
+    if (distance < closest.distance) {
+        closest.distance = distance;
+        closest.object = 6;
+    }
 
-			distance = abs(plane2Distance(position));
-			if (distance < minimum) {
-				minimum = distance;
-				i = 2;
-			}
+    distance = abs(spheresDistance(position));
+    if (distance < closest.distance) {
+        closest.distance = distance;
+        closest.object = 7;
+    }
 
-			distance = abs(plane3Distance(position));
-			if (distance < minimum) {
-				minimum = distance;
-				i = 3;
-			}
+    distance = abs(sphereDistance(position));
+    if (distance < closest.distance) {
+        closest.distance = distance;
+        closest.object = 8;
+    }
 
-			distance = abs(plane4Distance(position));
-			if (distance < minimum) {
-				minimum = distance;
-				i = 4;
-			}
+    distance = abs(torusDistance(position));
+    if (distance < closest.distance) {
+        closest.distance = distance;
+        closest.object = 9;
+    }
 
-			distance = abs(plane5Distance(position));
-			if (distance < minimum) {
-				minimum = distance;
-				i = 5;
-			}
-
-			distance = abs(plane6Distance(position));
-			if (distance < minimum) {
-				minimum = distance;
-				i = 6;
-			}
-
-			distance = abs(sphereDistance2(position));
-			if (distance < minimum) {
-				minimum = distance;
-				i = 7;
-			}
-
-			distance = abs(sphereDistance(position));
-			if (distance < minimum) {
-				minimum = distance;
-				i = 8;
-			}
-
-			distance = abs(sphereDistance3(position));
-			if (distance < minimum) {
-				minimum = distance;
-				i = 9;
-			}
-
-		 	t += minimum;
-			position = from + direction * t;
-
-			if (minimum < epsilon)
-				break;
-
-			t -= epsilon;
-		}
-
-		from = position;
-
-		if (i == 0)
-			break;
-
-		vec3 normal;
-
-		if (i == 1)
-			normal = plane1Normal(position);
-		else if (i == 2)
-			normal = plane2Normal(position);
-		else if (i == 3)
-			normal = plane3Normal(position);
-		else if (i == 4)
-			normal = plane4Normal(position);
-		else if (i == 5)
-			normal = plane5Normal(position);
-		else if (i == 6)
-			normal = plane6Normal(position);
-		else if (i == 7)
-			normal = sphereNormal2(position);
-		else if (i == 8)
-			normal = sphereNormal(position);
-		else if (i == 9) {
-			normal = sphereNormal3(position);
-		}
-
-		float transmittance = 0.0;
-		float smoothness = 0.0;
-		float refraction = 1.0;
-		vec3 color = vec3(1, 1, 1);
-		vec3 emissive = vec3(0, 0, 0);
-
-		if (i >= 1 && i <= 6) {
-			color = vec3(1, 1, 1) * 0.8;
-		}
-
-		if (i == 2) {
-			emissive = vec3(1, 1, 1) * 2.0;
-			color = vec3(0, 0, 0);
-		}
-
-		if (i == 7) {
-			transmittance = 0.98;
-			smoothness = 0.5;
-			color = vec3(0.8, 0.8, 1.0);
-			refraction = 1.4;
-		}
-
-		if (i == 8) {
-			color = vec3(1, 1, 1) * 0.9;
-		}
-
-		if (i == 9) {
-			smoothness = 0.9;
-			color = vec3(1.0, 0.6, 0.6) * 0.9;
-		}
-
-		if (dot(normal, direction) > 0.0)
-			normal = -normal;
-
-		total += luminance * emissive;
-		luminance = luminance * color;
-
-		vec2 noise = random(k);
-
-		normal = wobble(normal, smoothness, noise);
-
-		if (noise.y < transmittance) {
-			from = from - normal * epsilon;
-			direction = refract(direction, normal, 1.0 / refraction);
-		} else {
-			from = from + normal * epsilon;
-			direction = reflect(direction, normal);
-		}
-	}
-
-	vec4 original = texture2D(texture, uv * 0.5 - 0.5);
-	gl_FragColor = vec4(original.xyz + total, original.w + 1.0);
+    return closest;
 }
+
+vec3 calculateNormal(int object, vec3 position) {
+    if (object == 1)
+        return plane1Normal(position);
+    else if (object == 2)
+        return plane2Normal(position);
+    else if (object == 3)
+        return plane3Normal(position);
+    else if (object == 4)
+        return plane4Normal(position);
+    else if (object == 5)
+        return plane5Normal(position);
+    else if (object == 6)
+        return plane6Normal(position);
+    else if (object == 7)
+        return spheresNormal(position);
+    else if (object == 8)
+        return sphereNormal(position);
+    else if (object == 9)
+        return torusNormal(position);
+    return vec3(0, 0, 0);
+}
+
+Material material(int object) {
+    Material material;
+    material.refraction = 1.0;
+    material.color = vec3(1, 1, 1);
+
+    if (object >= 1 && object <= 6) {
+        material.color = vec3(1, 1, 1) * 0.8;
+    }
+
+    if (object == 2) {
+        material.emissivity = vec3(1, 1, 1) * 1.0;
+        material.color = vec3(0, 0, 0);
+    }
+
+    if (object == 7) {
+        material.color = vec3(1, 1, 1) * 0.9;
+    }
+
+    if (object == 8) {
+        material.smoothness = 0.8;
+        material.color = vec3(0.8, 0.6, 0.6) * 0.9;
+    }
+
+    if (object == 9) {
+        material.transmittance = 1.0;
+        material.smoothness = 1.0;
+        material.color = vec3(0.8, 0.8, 1.0);
+        material.refraction = 1.4;
+    }
+
+    return material;
+}
+
