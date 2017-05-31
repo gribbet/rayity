@@ -9,15 +9,15 @@ const float PI = 3.14159;
 const float MAX_VALUE = 1e30;
 
 const float epsilon = 0.001;
-const int maxSteps = 64;
-const int bounces = 12;
+const int maxSteps = 128;
+const int bounces = 24;
 
 const vec3 target = vec3(0, 0, 0);
-const vec3 eye = vec3(9, 15, 8);
+const vec3 eye = vec3(9, 6, 8) * 0.8;
 
 const float field = PI / 4.0;
 const float focal = length(target - eye);
-const float aperture = 0.05 * focal;
+const float aperture = 0.03 * focal;
 const vec3 look = normalize(target - eye);
 const vec3 qup = vec3(0, 1, 0);
 const vec3 up = qup - look * dot(look, qup);
@@ -145,7 +145,7 @@ vec3 spheresNormal(vec3 position) {
 }
 
 float sphereDistance(vec3 position) {
-	return length(position) - 2.0;
+	return length(position) - 3.0;
 }
 
 vec3 sphereNormal(vec3 position) {
@@ -366,14 +366,14 @@ Material material(int object) {
         material.color = vec3(1, 1, 1) * 0.9;
     }
 
-    if (object == 8) {
-        material.smoothness = 0.8;
-        material.color = vec3(0.8, 0.6, 0.6) * 0.9;
+    if (object == 9) {
+        material.smoothness = 0.9;
+        material.color = vec3(0.8, 0.5, 0.5) * 1.0;
     }
 
-    if (object == 9) {
-        material.transmittance = 1.0;
-        material.smoothness = 0.9;
+    if (object == 8) {
+        material.transmittance = 0.98;
+        material.smoothness = 0.98;
         material.color = vec3(0.8, 0.8, 1.0);
         material.refraction = 1.4;
     }
