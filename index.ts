@@ -80,7 +80,9 @@ canvas.width = width;
 canvas.height = height;
 document.body.appendChild(canvas);
 
-const gl = canvas.getContext("webgl");
+const gl = canvas.getContext("webgl", {
+	preserveDrawingBuffer: false
+});
 
 const renderer = new Renderer(gl, scene);
 
