@@ -159,6 +159,73 @@ class Z extends Expression {
 	}
 }
 
+class Exp extends Expression {
+	readonly value = `exp(${this.x})`;
+
+	constructor(private x: Expression) {
+		super([x]);
+	}
+}
+
+class Log extends Expression {
+	readonly value = `log(${this.x})`;
+
+	constructor(private x: Expression) {
+		super([x]);
+	}
+}
+
+class Clamp extends Expression {
+	readonly value = `clamp(${this.x}, 0.0, 1.0)`;
+
+	constructor(private x: Expression) {
+		super([x]);
+	}
+}
+
+class Mix extends Expression {
+	readonly value = `mix(${this.a}, ${this.b}, ${this.k})`;
+
+	constructor(private a: Expression,
+				private b: Expression,
+				private k: Expression) {
+		super([a, b, k]);
+	}
+}
+
+abstract class Chain extends Expression {
+	readonly id = this.x.id;
+	readonly value = this.x.value;
+	readonly dependencies = this.x.dependencies;
+
+	constructor(private x: Expression) {
+		super([]);
+	}
+}
+
+class SmoothMin extends Chain {
+	constructor(a: Expression, b: Expression, k: number = 1) {
+		let h = new Clamp(
+			new Add(
+				new Value(0.5),
+				new Divide(
+					new Multiply(
+						new Value(0.5),
+						new Subtract(a, b)),
+					new Value(k),
+				)));
+		super(new Subtract(
+			new Mix(a, b, h),
+			new Multiply(
+				new Multiply(
+					new Value(k),
+					h),
+				new Subtract(
+					new Value(1),
+					h))));
+	}
+}
+
 abstract class DistanceFunction {
 	abstract value(position: Expression): Expression;
 }
@@ -230,6 +297,21 @@ class Subtraction extends DistanceFunction {
 		return new Max(
 			this.a.value(position),
 			new Negative(this.b.value(position)));
+	}
+}
+
+class Blend extends DistanceFunction {
+	constructor(private a: DistanceFunction,
+				private b: DistanceFunction,
+				private k: number = 1.0) {
+		super();
+	}
+
+	value(position: Expression) {
+		return new SmoothMin(
+			this.a.value(position),
+			this.b.value(position),
+			this.k);
 	}
 }
 
@@ -398,19 +480,24 @@ let wallMaterial = new Material()
 	.withColor(new Color(0.7, 0.7, 0.7));
 let scene = new Scene([
 	new Shape(
-		new Subtraction(
-			new Scale(new UnitBox(), new Value(3)),
-			new Scale(new UnitSphere(), new Value(1.5))),
+		new Blend(
+			new Scale(
+				new UnitBox(),
+				new Value(3)),
+			new Scale(
+				new UnitSphere(),
+				new Value(4)),
+			1.0),
 		new Material()
 			.withTransmittance(0.94)
 			.withSmoothness(0.95)
 			.withRefraction(1.4)
 			.withColor(new Color(0.9, 0.9, 1.0))),
-	new Shape(
-		new UnitSphere(),
-		new Material()
-			.withColor(new Color(0, 0, 0))
-			.withEmissivity(new Color(20, 20, 20))),
+	/*new Shape(
+	 new UnitSphere(),
+	 new Material()
+	 .withColor(new Color(0, 0, 0))
+	 .withEmissivity(new Color(20, 20, 20)))*/,
 	new Shape(
 		new Plane(new VectorValue(1, 0, 0), new Value(20.0)),
 		wallMaterial),
