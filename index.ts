@@ -66,7 +66,7 @@ class Subtract extends Expression {
 }
 
 class Add extends Expression {
-	readonly value = `${this.a} - ${this.b}`;
+	readonly value = `${this.a} + ${this.b}`;
 
 	constructor(private a: Expression,
 				private b: Expression) {
@@ -101,6 +101,64 @@ class Dot extends Expression {
 	}
 }
 
+class Abs extends Expression {
+	readonly value = `abs(${this.x})`;
+
+	constructor(private x: Expression) {
+		super([x]);
+	}
+}
+
+class Min extends Expression {
+	readonly value = `min(${this.a}, ${this.b})`;
+
+	constructor(private a: Expression,
+				private b: Expression) {
+		super([a, b]);
+	}
+}
+
+class Max extends Expression {
+	readonly value = `max(${this.a}, ${this.b})`;
+
+	constructor(private a: Expression,
+				private b: Expression) {
+		super([a, b]);
+	}
+}
+
+class Negative extends Expression {
+	readonly value = `-${this.x}`;
+
+	constructor(private x: Expression) {
+		super([x]);
+	}
+}
+
+class X extends Expression {
+	readonly value = `vec4(${this.x}.x)`;
+
+	constructor(private x: Expression) {
+		super([x]);
+	}
+}
+
+class Y extends Expression {
+	readonly value = `vec4(${this.x}.y)`;
+
+	constructor(private x: Expression) {
+		super([x]);
+	}
+}
+
+class Z extends Expression {
+	readonly value = `vec4(${this.x}.z)`;
+
+	constructor(private x: Expression) {
+		super([x]);
+	}
+}
+
 abstract class DistanceFunction {
 	abstract value(position: Expression): Expression;
 }
@@ -110,6 +168,17 @@ class UnitSphere extends DistanceFunction {
 		return new Subtract(
 			new Length(position),
 			new Value(1.0));
+	}
+}
+
+class UnitBox extends DistanceFunction {
+	value(position: Expression) {
+		let d = new Subtract(
+			new Abs(position),
+			new VectorValue(1, 1, 1));
+		return new Add(
+			new Min(new Max(new X(d), new Max(new Y(d), new Z(d))), new Value(0)),
+			new Length(new Max(d, new Value(0))));
 	}
 }
 
@@ -135,6 +204,32 @@ class Scale extends DistanceFunction {
 			this.f.value(
 				new Divide(position, this.x)),
 			this.x);
+	}
+}
+
+class Union extends DistanceFunction {
+	constructor(private a: DistanceFunction,
+				private b: DistanceFunction) {
+		super();
+	}
+
+	value(position: Expression) {
+		return new Min(
+			this.a.value(position),
+			this.b.value(position));
+	}
+}
+
+class Subtraction extends DistanceFunction {
+	constructor(private a: DistanceFunction,
+				private b: DistanceFunction) {
+		super();
+	}
+
+	value(position: Expression) {
+		return new Max(
+			this.a.value(position),
+			new Negative(this.b.value(position)));
 	}
 }
 
@@ -303,32 +398,36 @@ let wallMaterial = new Material()
 	.withColor(new Color(0.7, 0.7, 0.7));
 let scene = new Scene([
 	new Shape(
-		new Scale(new UnitSphere(), new Value(3.0)),
+		new Subtraction(
+			new Scale(new UnitBox(), new Value(3)),
+			new Scale(new UnitSphere(), new Value(2.0))),
 		new Material()
 			.withTransmittance(0.94)
-			.withSmoothness(0.5)
-			.withRefraction(1.2)
+			.withSmoothness(0.95)
+			.withRefraction(1.4)
 			.withColor(new Color(0.9, 0.9, 1.0))),
-	new Shape(
-		new Plane(new VectorValue(-1, 0, 0), new Value(20.0)),
-		wallMaterial),
 	new Shape(
 		new Plane(new VectorValue(1, 0, 0), new Value(20.0)),
 		wallMaterial),
 	new Shape(
-		new Plane(new VectorValue(0, -1, 0), new Value(20.0)),
+		new Plane(new VectorValue(-1, 0, 0), new Value(20.0)),
 		wallMaterial),
 	new Shape(
 		new Plane(new VectorValue(0, 1, 0), new Value(20.0)),
 		wallMaterial),
 	new Shape(
-		new Plane(new VectorValue(0, 0, -1), new Value(4.0)),
+		new Plane(new VectorValue(0, -1, 0), new Value(20.0)),
 		wallMaterial),
 	new Shape(
-		new Plane(new VectorValue(0, 0, 1), new Value(20.0)),
+		new Plane(new VectorValue(0, 0, 1), new Value(4.0)),
+		wallMaterial),
+	new Shape(
+		new Plane(new VectorValue(0, 0, -1), new Value(20.0)),
 		new Material()
 			.withEmissivity(new Color(1.0, 1.0, 1.0)))
 ]);
+
+console.log(renderScene(scene));
 
 const width = 512;
 const height = 512;
