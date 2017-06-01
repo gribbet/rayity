@@ -498,7 +498,8 @@ function renderScene(scene: Scene): string {
 }
 
 let wallMaterial = new Material()
-	.withColor(new Color(0.9, 0.9, 0.9));
+	.withColor(new Color(0.9, 0.9, 0.9))
+	.withSmoothness(0.2);
 let scene = new Scene([
 	new Shape(
 		new Plane(new VectorValue(new Vector(1, 0, 0)), new Value(20.0)),
@@ -529,7 +530,7 @@ let scene = new Scene([
 			new Plane(new VectorValue(new Vector(-1, 0, 0)), new Value(5.0))),
 		new Material()
 			.withColor(new Color(0, 0, 0))
-			.withEmissivity(new Color(30, 30, 30))),
+			.withEmissivity(new Color(40, 40, 40))),
 	new Shape(
 		new Translate(
 			new Scale(
@@ -538,9 +539,9 @@ let scene = new Scene([
 			new Vector(-2, -10, -10)),
 		new Material()
 			.withTransmittance(0.9)
-			.withSmoothness(0.8)
+			.withSmoothness(0.95)
 			.withRefraction(1.4)
-			.withColor(new Color(0.8, 0.8, 1.0))),
+			.withColor(new Color(0.9, 0.9, 1.0))),
 	new Shape(
 		new Translate(
 			new Scale(
