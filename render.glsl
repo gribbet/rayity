@@ -12,7 +12,7 @@ const float MAX_VALUE = 1e30;
 
 const float epsilon = 0.01;
 const int maxSteps = 50;
-const int bounces = 20;
+const int bounces = 12;
 
 struct Closest {
     int object;

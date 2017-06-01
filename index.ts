@@ -300,31 +300,32 @@ function renderScene(scene: Scene): string {
 }
 
 let wallMaterial = new Material()
-	.withColor(new Color(0.5, 0.5, 0.5));
+	.withColor(new Color(0.7, 0.7, 0.7));
 let scene = new Scene([
 	new Shape(
 		new Scale(new UnitSphere(), new Value(3.0)),
 		new Material()
-			.withTransmittance(0.98)
-			.withSmoothness(1.0)
-			.withRefraction(1.4)),
-	new Shape(
-		new Plane(new VectorValue(1, 0, 0), new Value(20.0)),
-		wallMaterial),
+			.withTransmittance(0.94)
+			.withSmoothness(0.5)
+			.withRefraction(1.2)
+			.withColor(new Color(0.9, 0.9, 1.0))),
 	new Shape(
 		new Plane(new VectorValue(-1, 0, 0), new Value(20.0)),
 		wallMaterial),
 	new Shape(
-		new Plane(new VectorValue(0, 1, 0), new Value(20.0)),
+		new Plane(new VectorValue(1, 0, 0), new Value(20.0)),
 		wallMaterial),
 	new Shape(
 		new Plane(new VectorValue(0, -1, 0), new Value(20.0)),
 		wallMaterial),
 	new Shape(
-		new Plane(new VectorValue(0, 0, 1), new Value(20.0)),
+		new Plane(new VectorValue(0, 1, 0), new Value(20.0)),
 		wallMaterial),
 	new Shape(
-		new Plane(new VectorValue(0, 0, -1), new Value(20.0)),
+		new Plane(new VectorValue(0, 0, -1), new Value(4.0)),
+		wallMaterial),
+	new Shape(
+		new Plane(new VectorValue(0, 0, 1), new Value(20.0)),
 		new Material()
 			.withEmissivity(new Color(1.0, 1.0, 1.0)))
 ]);
