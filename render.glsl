@@ -10,7 +10,7 @@ varying vec2 uv;
 const float PI = 3.14159;
 const float MAX_VALUE = 1e30;
 
-const float epsilon = 0.01;
+const float epsilon = 0.001;
 const int maxSteps = 50;
 const int bounces = 12;
 
@@ -59,7 +59,7 @@ vec3 spherical(vec2 angle) {
 
 void main() {
     vec3 target = vec3(0, 0, 0);
-    float cameraDistance = 15.0;
+    float cameraDistance = 50.0;
     vec2 cameraAngle = vec2(-mouse.x * PI, (mouse.y + 1.0) * 0.5 * PI);
     vec3 eye = cameraDistance * spherical(cameraAngle);
 

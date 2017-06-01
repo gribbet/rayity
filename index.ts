@@ -39,11 +39,9 @@ class ColorValue extends Expression {
 }
 
 class VectorValue extends Expression {
-	readonly value = `vec4(${this.x}, ${this.y}, ${this.z}, 0)`;
+	readonly value = `vec4(${this.v.x}, ${this.v.y}, ${this.v.z}, 0)`;
 
-	constructor(private x: number,
-				private y: number,
-				private z: number) {
+	constructor(private v: Vector) {
 		super();
 	}
 }
@@ -242,7 +240,7 @@ class UnitBox extends DistanceFunction {
 	value(position: Expression) {
 		let d = new Subtract(
 			new Abs(position),
-			new VectorValue(1, 1, 1));
+			new VectorValue(new Vector(1, 1, 1)));
 		return new Add(
 			new Min(new Max(new X(d), new Max(new Y(d), new Z(d))), new Value(0)),
 			new Length(new Max(d, new Value(0))));
@@ -315,6 +313,27 @@ class Blend extends DistanceFunction {
 	}
 }
 
+class Translate extends DistanceFunction {
+	constructor(private x: DistanceFunction,
+				private v: Vector) {
+		super();
+	}
+
+	value(position: Expression) {
+		return this.x.value(
+			new Subtract(
+				position,
+				new VectorValue(this.v)));
+	}
+}
+
+class Vector {
+	constructor(public x: number,
+				public y: number,
+				public z: number) {
+	}
+}
+
 class Color {
 	constructor(public red: number,
 				public green: number,
@@ -346,13 +365,15 @@ class Material {
 	}
 
 	withColor(color: Color): Material {
-		this.color = color;
-		return this;
+		let copy = Object.create(this);
+		copy.color = color;
+		return copy;
 	}
 
 	withEmissivity(emissivity: Color): Material {
-		this.emissivity = emissivity;
-		return this;
+		let copy = Object.create(this);
+		copy.emissivity = emissivity;
+		return copy;
 	}
 }
 
@@ -477,46 +498,59 @@ function renderScene(scene: Scene): string {
 }
 
 let wallMaterial = new Material()
-	.withColor(new Color(0.7, 0.7, 0.7));
+	.withColor(new Color(0.9, 0.9, 0.9));
 let scene = new Scene([
 	new Shape(
-		new Blend(
-			new Scale(
-				new UnitBox(),
-				new Value(3)),
+		new Plane(new VectorValue(new Vector(1, 0, 0)), new Value(20.0)),
+		wallMaterial),
+	new Shape(
+		new Plane(new VectorValue(new Vector(0, 1, 0)), new Value(20.0)),
+		wallMaterial
+			.withColor(new Color(0.9, 0.7, 0.7))),
+	new Shape(
+		new Plane(new VectorValue(new Vector(0, -1, 0)), new Value(20.0)),
+		wallMaterial
+			.withColor(new Color(0.7, 0.9, 0.7))),
+	new Shape(
+		new Plane(new VectorValue(new Vector(0, 0, 1)), new Value(20.0)),
+		wallMaterial),
+	new Shape(
+		new Plane(new VectorValue(new Vector(0, 0, -1)), new Value(20.0)),
+		wallMaterial),
+	new Shape(
+		new Subtraction(
+			new Subtraction(
+				new Subtraction(
+					new Subtraction(
+						new Plane(new VectorValue(new Vector(0, 0, -1)), new Value(19.9999)),
+						new Plane(new VectorValue(new Vector(0, 1, 0)), new Value(5.0))),
+					new Plane(new VectorValue(new Vector(0, -1, 0)), new Value(5.0))),
+				new Plane(new VectorValue(new Vector(1, 0, 0)), new Value(5.0))),
+			new Plane(new VectorValue(new Vector(-1, 0, 0)), new Value(5.0))),
+		new Material()
+			.withColor(new Color(0, 0, 0))
+			.withEmissivity(new Color(30, 30, 30))),
+	new Shape(
+		new Translate(
 			new Scale(
 				new UnitSphere(),
-				new Value(4)),
-			1.0),
+				new Value(6)),
+			new Vector(-2, -10, -10)),
 		new Material()
-			.withTransmittance(0.94)
-			.withSmoothness(0.95)
+			.withTransmittance(0.9)
+			.withSmoothness(0.8)
 			.withRefraction(1.4)
-			.withColor(new Color(0.9, 0.9, 1.0))),
-	/*new Shape(
-	 new UnitSphere(),
-	 new Material()
-	 .withColor(new Color(0, 0, 0))
-	 .withEmissivity(new Color(20, 20, 20)))*/,
+			.withColor(new Color(0.8, 0.8, 1.0))),
 	new Shape(
-		new Plane(new VectorValue(1, 0, 0), new Value(20.0)),
-		wallMaterial),
-	new Shape(
-		new Plane(new VectorValue(-1, 0, 0), new Value(20.0)),
-		wallMaterial),
-	new Shape(
-		new Plane(new VectorValue(0, 1, 0), new Value(20.0)),
-		wallMaterial),
-	new Shape(
-		new Plane(new VectorValue(0, -1, 0), new Value(20.0)),
-		wallMaterial),
-	new Shape(
-		new Plane(new VectorValue(0, 0, 1), new Value(4.0)),
-		wallMaterial),
-	new Shape(
-		new Plane(new VectorValue(0, 0, -1), new Value(20.0)),
+		new Translate(
+			new Scale(
+				new UnitSphere(),
+				new Value(6)),
+			new Vector(-2, 10, -10)),
 		new Material()
-			.withEmissivity(new Color(1.0, 1.0, 1.0)))
+			.withTransmittance(0.0)
+			.withSmoothness(0.99)
+			.withColor(new Color(0.8, 0.8, 1.0)))
 ]);
 
 console.log(renderScene(scene));
@@ -594,7 +628,7 @@ gl.vertexAttribPointer(position, 2, WebGLRenderingContext.FLOAT, false, 0, 0);
 
 gl.viewport(0, 0, width, height);
 
-let mouse = {x: 0.25, y: -0.25};
+let mouse = {x: 0, y: 0};
 let clicked = false;
 
 canvas.addEventListener("mousedown", () => clicked = true);
