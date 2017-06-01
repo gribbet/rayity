@@ -1,456 +1,12 @@
+import {ColorValue, Expression, Value, Variable, VectorValue} from "./src/Expression";
+import {Shape} from "./src/Shape";
+import {Scene} from "./src/Scene";
+import {Material} from "./src/Material";
+import {Color} from "./src/Color";
+import {Plane, Scale, Subtraction, Translate, UnitCylinder, UnitSphere} from "./src/DistanceFunction";
+import {Vector} from "./src/Vector";
 declare function require(name: string): string;
 
-let id = 1;
-
-abstract class Expression {
-	readonly id: string = `a${id++}`;
-	readonly value: string;
-
-	constructor(readonly dependencies: Expression[] = []) {
-	}
-
-	toString(): string {
-		return this.id;
-	}
-}
-
-class Variable extends Expression {
-	readonly value = this.name;
-
-	constructor(private name: string) {
-		super();
-	}
-}
-
-class Value extends Expression {
-	readonly value = `vec4(${this.number.toPrecision(6)})`;
-
-	constructor(private number: number) {
-		super();
-	}
-}
-
-class ColorValue extends Expression {
-	readonly value = `vec4(${this.color.red}, ${this.color.green}, ${this.color.blue}, 0)`;
-
-	constructor(private color: Color) {
-		super();
-	}
-}
-
-class VectorValue extends Expression {
-	readonly value = `vec4(${this.v.x}, ${this.v.y}, ${this.v.z}, 0)`;
-
-	constructor(private v: Vector) {
-		super();
-	}
-}
-
-class Length extends Expression {
-	readonly value = `vec4(length(${this.x}))`;
-
-	constructor(private x: Expression) {
-		super([x]);
-	}
-}
-
-class Subtract extends Expression {
-	readonly value = `${this.a} - ${this.b}`;
-
-	constructor(private a: Expression,
-				private b: Expression) {
-		super([a, b]);
-	}
-}
-
-class Add extends Expression {
-	readonly value = `${this.a} + ${this.b}`;
-
-	constructor(private a: Expression,
-				private b: Expression) {
-		super([a, b]);
-	}
-}
-
-class Multiply extends Expression {
-	readonly value = `${this.a} * ${this.b}`;
-
-	constructor(private a: Expression,
-				private b: Expression) {
-		super([a, b]);
-	}
-}
-
-class Divide extends Expression {
-	readonly value = `${this.a} / ${this.b}`;
-
-	constructor(private a: Expression,
-				private b: Expression) {
-		super([a, b]);
-	}
-}
-
-class Dot extends Expression {
-	readonly value = `vec4(dot(${this.a}, ${this.b}))`;
-
-	constructor(private a: Expression,
-				private b: Expression) {
-		super([a, b]);
-	}
-}
-
-class Abs extends Expression {
-	readonly value = `abs(${this.x})`;
-
-	constructor(private x: Expression) {
-		super([x]);
-	}
-}
-
-class Min extends Expression {
-	readonly value = `min(${this.a}, ${this.b})`;
-
-	constructor(private a: Expression,
-				private b: Expression) {
-		super([a, b]);
-	}
-}
-
-class Max extends Expression {
-	readonly value = `max(${this.a}, ${this.b})`;
-
-	constructor(private a: Expression,
-				private b: Expression) {
-		super([a, b]);
-	}
-}
-
-class Negative extends Expression {
-	readonly value = `-${this.x}`;
-
-	constructor(private x: Expression) {
-		super([x]);
-	}
-}
-
-class X extends Expression {
-	readonly value = `vec4(${this.x}.x)`;
-
-	constructor(private x: Expression) {
-		super([x]);
-	}
-}
-
-class Y extends Expression {
-	readonly value = `vec4(${this.x}.y)`;
-
-	constructor(private x: Expression) {
-		super([x]);
-	}
-}
-
-class Z extends Expression {
-	readonly value = `vec4(${this.x}.z)`;
-
-	constructor(private x: Expression) {
-		super([x]);
-	}
-}
-
-class Exp extends Expression {
-	readonly value = `exp(${this.x})`;
-
-	constructor(private x: Expression) {
-		super([x]);
-	}
-}
-
-class Log extends Expression {
-	readonly value = `log(${this.x})`;
-
-	constructor(private x: Expression) {
-		super([x]);
-	}
-}
-
-class Clamp extends Expression {
-	readonly value = `clamp(${this.x}, 0.0, 1.0)`;
-
-	constructor(private x: Expression) {
-		super([x]);
-	}
-}
-
-class Mix extends Expression {
-	readonly value = `mix(${this.a}, ${this.b}, ${this.k})`;
-
-	constructor(private a: Expression,
-				private b: Expression,
-				private k: Expression) {
-		super([a, b, k]);
-	}
-}
-
-class Cos extends Expression {
-	readonly value = `cos(${this.x})`;
-
-	constructor(private x: Expression) {
-		super([x]);
-	}
-}
-
-abstract class Chain extends Expression {
-	readonly id = this.x.id;
-	readonly value = this.x.value;
-	readonly dependencies = this.x.dependencies;
-
-	constructor(private x: Expression) {
-		super([]);
-	}
-}
-
-class SmoothMin extends Chain {
-	constructor(a: Expression, b: Expression, k: number = 1) {
-		let h = new Clamp(
-			new Add(
-				new Value(0.5),
-				new Divide(
-					new Multiply(
-						new Value(0.5),
-						new Subtract(a, b)),
-					new Value(k),
-				)));
-		super(new Subtract(
-			new Mix(a, b, h),
-			new Multiply(
-				new Multiply(
-					new Value(k),
-					h),
-				new Subtract(
-					new Value(1),
-					h))));
-	}
-}
-
-abstract class DistanceFunction {
-	abstract value(position: Expression): Expression;
-}
-
-class UnitSphere extends DistanceFunction {
-	value(position: Expression) {
-		return new Subtract(
-			new Length(position),
-			new Value(1.0));
-	}
-}
-
-class UnitBox extends DistanceFunction {
-	value(position: Expression) {
-		let d = new Subtract(
-			new Abs(position),
-			new VectorValue(new Vector(1, 1, 1)));
-		return new Add(
-			new Min(new Max(new X(d), new Max(new Y(d), new Z(d))), new Value(0)),
-			new Length(new Max(d, new Value(0))));
-	}
-}
-
-class Plane extends DistanceFunction {
-	constructor(private normal: Expression,
-				private offset: Expression) {
-		super();
-	}
-
-	value(position: Expression) {
-		return new Add(new Dot(position, this.normal), this.offset);
-	}
-}
-
-class UnitCylinder extends DistanceFunction {
-	constructor() {
-		super();
-	}
-
-	value(position: Expression) {
-		return new Subtract(
-			new Length(
-				new Multiply(
-					position,
-					new VectorValue(new Vector(1, 1, 0)))),
-			new Value(1.0));
-	}
-}
-
-class Scale extends DistanceFunction {
-	constructor(private f: DistanceFunction,
-				private x: Expression) {
-		super();
-	}
-
-	value(position: Expression) {
-		return new Multiply(
-			this.f.value(
-				new Divide(position, this.x)),
-			this.x);
-	}
-}
-
-class Union extends DistanceFunction {
-	constructor(private a: DistanceFunction,
-				private b: DistanceFunction) {
-		super();
-	}
-
-	value(position: Expression) {
-		return new Min(
-			this.a.value(position),
-			this.b.value(position));
-	}
-}
-
-class Subtraction extends DistanceFunction {
-	constructor(private a: DistanceFunction,
-				private b: DistanceFunction) {
-		super();
-	}
-
-	value(position: Expression) {
-		return new Max(
-			this.a.value(position),
-			new Negative(this.b.value(position)));
-	}
-}
-
-class Blend extends DistanceFunction {
-	constructor(private a: DistanceFunction,
-				private b: DistanceFunction,
-				private k: number = 1.0) {
-		super();
-	}
-
-	value(position: Expression) {
-		return new SmoothMin(
-			this.a.value(position),
-			this.b.value(position),
-			this.k);
-	}
-}
-
-class Translate extends DistanceFunction {
-	constructor(private x: DistanceFunction,
-				private v: Vector) {
-		super();
-	}
-
-	value(position: Expression) {
-		return this.x.value(
-			new Subtract(
-				position,
-				new VectorValue(this.v)));
-	}
-}
-
-class Test extends DistanceFunction {
-	value(position: Expression) {
-		return new Multiply(
-			new Add(
-				new Multiply(
-					new Multiply(
-						new Cos(
-							new X(
-								new Multiply(
-									position,
-									new Value(6.0)))),
-						new Cos(
-							new Y(
-								new Multiply(
-									position,
-									new Value(4.0))))),
-					new Cos(
-						new Z(
-							new Multiply(
-								position,
-								new Value(5.0))))),
-				new Value(1.0)),
-			new Value(0.02));
-	}
-}
-
-class Displace extends DistanceFunction {
-	constructor(private x: DistanceFunction,
-				private y: DistanceFunction) {
-		super();
-	}
-
-	value(position: Expression) {
-		return new Add(
-			this.x.value(position),
-			this.y.value(position));
-	}
-}
-
-class Vector {
-	constructor(public x: number,
-				public y: number,
-				public z: number) {
-	}
-}
-
-class Color {
-	constructor(public red: number,
-				public green: number,
-				public blue: number) {
-	}
-}
-
-class Material {
-	constructor(public transmittance: number = 0.0,
-				public smoothness: number = 0.0,
-				public refraction: number = 1.0,
-				public color: Color = new Color(1, 1, 1),
-				public emissivity: Color = new Color(0, 0, 0)) {
-	}
-
-	withTransmittance(transmittance: number): Material {
-		this.transmittance = transmittance;
-		return this;
-	}
-
-	withSmoothness(smoothness: number): Material {
-		this.smoothness = smoothness;
-		return this;
-	}
-
-	withRefraction(refraction: number): Material {
-		this.refraction = refraction;
-		return this;
-	}
-
-	withColor(color: Color): Material {
-		let copy = Object.create(this);
-		copy.color = color;
-		return copy;
-	}
-
-	withEmissivity(emissivity: Color): Material {
-		let copy = Object.create(this);
-		copy.emissivity = emissivity;
-		return copy;
-	}
-}
-
-class Shape {
-	readonly id: string = `${id++}`;
-
-	constructor(public f: DistanceFunction,
-				public material: Material = new Material()) {
-	}
-}
-
-class Scene {
-	constructor(public shapes: Shape[]) {
-	}
-}
 
 function dependencies(x: Expression): Expression[] {
 	let all = x.dependencies
@@ -563,53 +119,52 @@ let wallMaterial = new Material()
 	.withColor(new Color(0.8, 0.8, 0.8))
 	.withSmoothness(0.0);
 let scene = new Scene([
-		new Shape(
-			new Plane(new VectorValue(new Vector(-1, 0, 0)), new Value(20.0)),
-			wallMaterial),
-		new Shape(
-			new Plane(new VectorValue(new Vector(1, 0, 0)), new Value(20.0)),
-			wallMaterial),
-		new Shape(
-			new Plane(new VectorValue(new Vector(0, 1, 0)), new Value(20.0)),
-			wallMaterial),
-		new Shape(
-			new Plane(new VectorValue(new Vector(0, -1, 0)), new Value(20.0)),
-			wallMaterial),
-		new Shape(
-			new Plane(new VectorValue(new Vector(0, 0, 1)), new Value(0.0)),
-			wallMaterial),
-		new Shape(
-			new Plane(new VectorValue(new Vector(0, 0, -1)), new Value(20.0)),
-			wallMaterial),
-		new Shape(
-			new Translate(
-				new Scale(
-					new UnitSphere(),
-					new Value(5)),
-				new Vector(10, 5, 10)),
-			new Material()
-				.withTransmittance(0.0)
-				.withSmoothness(1.0)
-				.withColor(new Color(0, 0, 0))
-				.withEmissivity(new Color(12, 12, 12))),
-		new Shape(
+	new Shape(
+		new Plane(new VectorValue(new Vector(-1, 0, 0)), new Value(20.0)),
+		wallMaterial),
+	new Shape(
+		new Plane(new VectorValue(new Vector(1, 0, 0)), new Value(20.0)),
+		wallMaterial),
+	new Shape(
+		new Plane(new VectorValue(new Vector(0, 1, 0)), new Value(20.0)),
+		wallMaterial),
+	new Shape(
+		new Plane(new VectorValue(new Vector(0, -1, 0)), new Value(20.0)),
+		wallMaterial),
+	new Shape(
+		new Plane(new VectorValue(new Vector(0, 0, 1)), new Value(0.0)),
+		wallMaterial),
+	new Shape(
+		new Plane(new VectorValue(new Vector(0, 0, -1)), new Value(20.0)),
+		wallMaterial),
+	new Shape(
+		new Translate(
+			new Scale(
+				new UnitSphere(),
+				new Value(5)),
+			new Vector(10, 5, 10)),
+		new Material()
+			.withTransmittance(0.0)
+			.withSmoothness(1.0)
+			.withColor(new Color(0, 0, 0))
+			.withEmissivity(new Color(12, 12, 12))),
+	new Shape(
+		new Subtraction(
 			new Subtraction(
-				new Subtraction(
-					new Scale(
-						new UnitCylinder(),
-						new Value(3)),
-					new Scale(
-						new UnitCylinder(),
-						new Value(2.5))),
+				new Scale(
+					new UnitCylinder(),
+					new Value(3)),
+				new Scale(
+					new UnitCylinder(),
+					new Value(2.5))),
 
-				new Plane(new VectorValue(new Vector(0, 0, -1)), new Value(2.0))),
-			new Material()
-				.withTransmittance(0.9)
-				.withSmoothness(0.5)
-				.withRefraction(1.4)
-				.withColor(new Color(1.0, 1.0, 0.9)))
-	])
-;
+			new Plane(new VectorValue(new Vector(0, 0, -1)), new Value(2.0))),
+		new Material()
+			.withTransmittance(0.9)
+			.withSmoothness(0.5)
+			.withRefraction(1.4)
+			.withColor(new Color(1.0, 1.0, 0.9)))
+]);
 
 console.log(renderScene(scene));
 
