@@ -400,12 +400,17 @@ let scene = new Scene([
 	new Shape(
 		new Subtraction(
 			new Scale(new UnitBox(), new Value(3)),
-			new Scale(new UnitSphere(), new Value(2.0))),
+			new Scale(new UnitSphere(), new Value(1.5))),
 		new Material()
 			.withTransmittance(0.94)
 			.withSmoothness(0.95)
 			.withRefraction(1.4)
 			.withColor(new Color(0.9, 0.9, 1.0))),
+	new Shape(
+		new UnitSphere(),
+		new Material()
+			.withColor(new Color(0, 0, 0))
+			.withEmissivity(new Color(20, 20, 20))),
 	new Shape(
 		new Plane(new VectorValue(1, 0, 0), new Value(20.0)),
 		wallMaterial),
