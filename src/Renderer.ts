@@ -35,6 +35,8 @@ export class Renderer {
 		gl.shaderSource(vertexShader, require("./vertex.glsl"));
 		gl.compileShader(vertexShader);
 
+		console.log(this.buildScene(scene));
+
 		const screenShader = gl.createShader(gl.FRAGMENT_SHADER);
 		gl.shaderSource(screenShader, require("./render.glsl") + this.buildScene(scene));
 		gl.compileShader(screenShader);

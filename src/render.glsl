@@ -1,4 +1,4 @@
-precision highp float;
+precision lowp float;
 
 uniform sampler2D texture;
 uniform vec2 resolution;
@@ -10,8 +10,8 @@ varying vec2 uv;
 const float PI = 3.14159;
 const float MAX_VALUE = 1e30;
 
-const float epsilon = 0.01;
-const int maxSteps = 100;
+const float epsilon = 0.0001;
+const int maxSteps = 64;
 const int bounces = 12;
 
 struct Closest {
@@ -92,13 +92,11 @@ void main() {
 		for (int step = 1; step <= maxSteps; step++) {
 			closest = calculateClosest(position);
 
-		 	distance += closest.distance;
+		 	distance += closest.distance * 0.5;
 			position = from + direction * distance;
 
 			if (closest.distance < epsilon)
 				break;
-
-			distance -= epsilon;
 		}
 
 		if (closest.object == 0)

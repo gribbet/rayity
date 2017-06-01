@@ -5,11 +5,13 @@ import {
 	Divide,
 	Dot,
 	Expression,
+	FixVectorValue,
 	Length,
 	Max,
 	Min,
 	Multiply,
 	Negative,
+	Sin,
 	SmoothMin,
 	Subtract,
 	Value,
@@ -163,6 +165,36 @@ export class Test extends DistanceFunction {
 								new Value(5.0))))),
 				new Value(1.0)),
 			new Value(0.02));
+	}
+}
+
+export class TwistZ extends DistanceFunction {
+	constructor(private x: DistanceFunction) {
+		super();
+	}
+
+	value(position: Expression) {
+		const angle = new Z(
+			new Multiply(position,
+				new Value(3.14159 * 0.25)));
+		return this.x.value(
+			new FixVectorValue(
+				new Add(
+					new Multiply(
+						new Cos(angle),
+						new X(position)),
+					new Multiply(
+						new Negative(
+							new Sin(angle)),
+						new Y(position))),
+				new Add(
+					new Multiply(
+						new Sin(angle),
+						new X(position)),
+					new Multiply(
+						new Cos(angle),
+						new Y(position))),
+			new Z(position)));
 	}
 }
 

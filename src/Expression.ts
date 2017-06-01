@@ -48,6 +48,16 @@ export class VectorValue extends Expression {
 	}
 }
 
+export class FixVectorValue extends Expression {
+	readonly value = `vec4(${this.x}.x, ${this.y}.x, ${this.z}.x, 0)`;
+
+	constructor(private x: Expression,
+				private y: Expression,
+				private z: Expression) {
+		super([x, y, z]);
+	}
+}
+
 export class Length extends Expression {
 	readonly value = `vec4(length(${this.x}))`;
 
@@ -195,6 +205,14 @@ export class Mix extends Expression {
 
 export class Cos extends Expression {
 	readonly value = `cos(${this.x})`;
+
+	constructor(private x: Expression) {
+		super([x]);
+	}
+}
+
+export class Sin extends Expression {
+	readonly value = `sin(${this.x})`;
 
 	constructor(private x: Expression) {
 		super([x]);
