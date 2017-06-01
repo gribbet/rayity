@@ -3,17 +3,7 @@ import {Shape} from "./src/Shape";
 import {Scene} from "./src/Scene";
 import {Material} from "./src/Material";
 import {Color} from "./src/Color";
-import {
-	Plane,
-	Scale,
-	Subtraction,
-	Translate,
-	TwistZ,
-	Union,
-	UnitBox,
-	UnitCylinder,
-	UnitSphere
-} from "./src/DistanceFunction";
+import {Plane, Repeat, Scale, Translate, TwistZ, UnitBox, UnitSphere} from "./src/DistanceFunction";
 import {Vector} from "./src/Vector";
 import {Renderer} from "./src/Renderer";
 
@@ -49,26 +39,19 @@ let scene = new Scene([
 			.withTransmittance(0.0)
 			.withSmoothness(1.0)
 			.withColor(new Color(0, 0, 0))
-			.withEmissivity(new Color(12, 12, 12))),
+			.withEmissivity(new Color(8, 8, 8))),
 	new Shape(
-		new Union(
-			new Translate(
-				new Scale(new TwistZ(new UnitBox()), new Value(1.0)),
-				new Vector(0, 0, 1.0)),
-			new Subtraction(
-				new Subtraction(
-					new Scale(
-						new UnitCylinder(),
-						new Value(3)),
-					new Scale(
-						new UnitCylinder(),
-						new Value(2.5))),
-				new Plane(new VectorValue(new Vector(0, 0, -1)), new Value(2.0)))),
+		new Repeat(
+			new TwistZ(
+				new Scale(
+					new UnitBox(),
+					new VectorValue(new Vector(0.2, 0.2, 1000)))),
+			new VectorValue(new Vector(1, 0, 0))),
 		new Material()
 			.withTransmittance(0.8)
 			.withSmoothness(0.5)
 			.withRefraction(1.4)
-			.withColor(new Color(0.95, 0.95	, 1.0)))
+			.withColor(new Color(0.95, 0.95, 1.0)))
 ]);
 
 const width = 512;

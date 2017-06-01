@@ -111,6 +111,15 @@ export class Dot extends Expression {
 	}
 }
 
+export class Mod extends Expression {
+	readonly value = `mod(${this.a}, ${this.b})`;
+
+	constructor(private a: Expression,
+				private b: Expression) {
+		super([a, b]);
+	}
+}
+
 export class Abs extends Expression {
 	readonly value = `abs(${this.x})`;
 

@@ -9,6 +9,7 @@ import {
 	Length,
 	Max,
 	Min,
+	Mod,
 	Multiply,
 	Negative,
 	Sin,
@@ -84,6 +85,20 @@ export class Scale extends DistanceFunction {
 			this.f.value(
 				new Divide(position, this.x)),
 			this.x);
+	}
+}
+
+export class Repeat extends DistanceFunction {
+	constructor(private f: DistanceFunction,
+				private x: Expression) {
+		super();
+	}
+
+	value(position: Expression) {
+		return this.f.value(
+			new Subtract(
+				new Mod(position, this.x),
+				new Multiply(this.x, new Value(0.5))));
 	}
 }
 
@@ -194,7 +209,7 @@ export class TwistZ extends DistanceFunction {
 					new Multiply(
 						new Cos(angle),
 						new Y(position))),
-			new Z(position)));
+				new Z(position)));
 	}
 }
 
