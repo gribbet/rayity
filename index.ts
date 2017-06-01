@@ -586,12 +586,12 @@ let scene = new Scene([
 				new Scale(
 					new UnitSphere(),
 					new Value(5)),
-				new Vector(0, 10, 10)),
+				new Vector(10, 5, 10)),
 			new Material()
 				.withTransmittance(0.0)
 				.withSmoothness(1.0)
 				.withColor(new Color(0, 0, 0))
-				.withEmissivity(new Color(4, 4, 4))),
+				.withEmissivity(new Color(12, 12, 12))),
 		new Shape(
 			new Subtraction(
 				new Subtraction(
@@ -600,12 +600,13 @@ let scene = new Scene([
 						new Value(3)),
 					new Scale(
 						new UnitCylinder(),
-						new Value(2.9))),
+						new Value(2.5))),
 
 				new Plane(new VectorValue(new Vector(0, 0, -1)), new Value(2.0))),
 			new Material()
-				.withTransmittance(0.0)
-				.withSmoothness(0.995)
+				.withTransmittance(0.9)
+				.withSmoothness(0.5)
+				.withRefraction(1.4)
 				.withColor(new Color(1.0, 1.0, 0.9)))
 	])
 ;
