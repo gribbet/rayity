@@ -7,7 +7,6 @@ import {Plane, Scale, Subtraction, Translate, UnitCylinder, UnitSphere} from "./
 import {Vector} from "./src/Vector";
 import {Renderer} from "./src/Renderer";
 
-
 let wallMaterial = new Material()
 	.withColor(new Color(0.8, 0.8, 0.8))
 	.withSmoothness(0.0);
@@ -59,10 +58,13 @@ let scene = new Scene([
 			.withColor(new Color(1.0, 1.0, 0.9)))
 ]);
 
+const width = 512;
+const height = 512;
+
 
 const canvas = document.createElement("canvas");
-canvas.width = 512;
-canvas.height = 512;
+canvas.width = width;
+canvas.height = height;
 document.body.appendChild(canvas);
 
 const gl = canvas.getContext("webgl");
