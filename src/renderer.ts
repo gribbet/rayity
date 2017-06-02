@@ -1,5 +1,6 @@
 import {buildScene} from "./build";
 import {Scene} from "./scene";
+
 declare function require(name: string): string;
 
 export type Renderer = {
