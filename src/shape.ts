@@ -8,7 +8,7 @@ export type Shape = {
 }
 
 let lastId = 1;
-function createShape(
+function shape(
 	body: string,
 	dependencies: Shape[] = []) {
 
@@ -22,56 +22,79 @@ function createShape(
 }
 
 export function unitSphere(): Shape {
-	return createShape(`return length(p) - 1.0;`);
+	return shape(`return length(p) - 1.0;`);
 }
 
 export function unitBox(): Shape {
-	return createShape(`
+	return shape(`
 		vec3 d = abs(p) - vec3(1, 1, 1);
 		return min(max(d.x, max(d.y, d.z)), 0.0) + length(max(d, 0.0));`);
 }
 
 export function unitCylinder(): Shape {
-	return createShape(`return length(p.xy) - 1.0;`);
+	return shape(`return length(p.xy) - 1.0;`);
 }
 
 export function plane(normal: Expression, offset: Expression) {
-	return createShape(`return dot(p, ${normal}) + ${offset}.x;`);
+	return shape(`return dot(p, ${normal}) + ${offset}.x;`);
 }
 
-export function translate(x: Expression, shape: Shape) {
-	return createShape(`return ${shape.call(`p - ${x}`)};`, [shape]);
+export function translate(x: Expression, a: Shape) {
+	return shape(`return ${a.call(`p - ${x}`)};`,
+		[a]);
 }
 
-export function scale(x: Expression, shape: Shape) {
-	return createShape(`return ${shape.call(`p / ${x}.x`)} * ${x}.x;`, [shape]);
+export function scale(x: Expression, a: Shape) {
+	return shape(`return ${a.call(`p / ${x}.x`)} * ${x}.x;`,
+		[a]);
 }
 
-export function repeat(x: Expression, shape: Shape) {
-	return createShape(`return ${shape.call(`mod(p, ${x}) - ${x} * 0.5`)};`, [shape]);
+export function repeat(x: Expression, a: Shape) {
+	return shape(`return ${a.call(`mod(p, ${x}) - ${x} * 0.5`)};`,
+		[a]);
 }
 
 export function union(a: Shape, b: Shape) {
-	return createShape(`return min(${a.call("p")}, ${b.call("p")});`, [a, b]);
+	return shape(`return min(${a.call("p")}, ${b.call("p")});`,
+		[a, b]);
 }
 
 export function intersection(a: Shape, b: Shape) {
-	return createShape(`return max(${a.call("p")}, ${b.call("p")});`, [a, b]);
+	return shape(`return max(${a.call("p")}, ${b.call("p")});`,
+		[a, b]);
 }
 
 export function difference(a: Shape, b: Shape) {
-	return createShape(`return max(${a.call("p")}, -${b.call("p")});`, [a, b]);
+	return shape(`return max(${a.call("p")}, -${b.call("p")});`,
+		[a, b]);
 }
 
 export function blend(k: number, a: Shape, b: Shape) {
-	return createShape(`
+	return shape(`
 		float a = ${a.call("p")};
 		float b = ${b.call("p")};
 		const float k = ${value(k)}.x;
 		float h = clamp(0.5 + 0.5 * (b - a) / k, 0.0, 1.0);
-		return mix(b, a, h) - k * h * (1.0 - h);
-	`, [a, b]);
+		return mix(b, a, h) - k * h * (1.0 - h);`,
+		[a, b]);
 }
+
+export function wrapX(a: Shape) {
+	return shape(`
+		float q = length(p.yz);
+		return ${a.call("vec3(p.x, q, asin(p.z / q))")};`,
+		[a]);
+}
+
+export function rotateY(r: Expression, a: Shape) {
+	return shape(`
+	return ${a.call(`vec3(
+		cos(${r}.x) * p.x + sin(${r}.x) * p.z,
+		p.y,
+		-sin(${r}.x) * p.x + cos(${r}.x) * p.z)`)};`,
+		[a]);
+}
+
 
 /*
 
@@ -142,11 +165,7 @@ export function blend(k: number, a: Shape, b: Shape) {
 
  value(position: Expression) {
  return this.x.value(
- new FixVectorValue(
- new Add(new Multiply(new Cos(this.v), new X(position)), new Multiply(new Sin(this.v), new Z(position))),
- new Y(position),
- new Add(new Multiply(new Negative(new Sin(this.v)), new X(position)), new Multiply(new Cos(this.v), new Z(position)))));
- }
+
  }
 
  export class RotateZ extends DistanceFunction {
