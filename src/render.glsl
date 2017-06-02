@@ -10,9 +10,9 @@ varying vec2 uv;
 const float PI = 3.14159;
 const float MAX_VALUE = 1e30;
 
-const float epsilon = 0.0001;
+const float epsilon = 0.001;
 const int maxSteps = 64;
-const int bounces = 12;
+const int bounces = 20;
 
 struct Closest {
     int object;
@@ -97,6 +97,8 @@ void main() {
 
 			if (closest.distance < epsilon)
 				break;
+
+            distance -= epsilon;
 		}
 
 		if (closest.object == 0)
