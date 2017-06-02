@@ -3,7 +3,7 @@ import {Shape} from "./src/Shape";
 import {Scene} from "./src/Scene";
 import {Material} from "./src/Material";
 import {Color} from "./src/Color";
-import {Plane, Repeat, Scale, Translate, TwistZ, UnitBox, UnitSphere} from "./src/DistanceFunction";
+import {Plane, Repeat, RotateY, Scale, Translate, TwistZ, UnitBox, UnitSphere, WrapX} from "./src/DistanceFunction";
 import {Vector} from "./src/Vector";
 import {Renderer} from "./src/Renderer";
 
@@ -11,48 +11,58 @@ let wallMaterial = new Material()
 	.withColor(new Color(0.8, 0.8, 0.8))
 	.withSmoothness(0.0);
 let scene = new Scene([
-	new Shape(
-		new Plane(new VectorValue(new Vector(-1, 0, 0)), new Value(20.0)),
-		wallMaterial),
-	new Shape(
-		new Plane(new VectorValue(new Vector(1, 0, 0)), new Value(20.0)),
-		wallMaterial),
-	new Shape(
-		new Plane(new VectorValue(new Vector(0, 1, 0)), new Value(20.0)),
-		wallMaterial),
-	new Shape(
-		new Plane(new VectorValue(new Vector(0, -1, 0)), new Value(20.0)),
-		wallMaterial),
-	new Shape(
-		new Plane(new VectorValue(new Vector(0, 0, 1)), new Value(0.0)),
-		wallMaterial),
-	new Shape(
-		new Plane(new VectorValue(new Vector(0, 0, -1)), new Value(20.0)),
-		wallMaterial),
-	new Shape(
-		new Translate(
-			new Scale(
-				new UnitSphere(),
-				new Value(5)),
-			new Vector(10, 5, 10)),
-		new Material()
-			.withTransmittance(0.0)
-			.withSmoothness(1.0)
-			.withColor(new Color(0, 0, 0))
-			.withEmissivity(new Color(8, 8, 8))),
-	new Shape(
-		new Repeat(
-			new TwistZ(
+		new Shape(
+			new Plane(new VectorValue(new Vector(-1, 0, 0)), new Value(20.0)),
+			wallMaterial),
+		new Shape(
+			new Plane(new VectorValue(new Vector(1, 0, 0)), new Value(20.0)),
+			wallMaterial),
+		new Shape(
+			new Plane(new VectorValue(new Vector(0, 1, 0)), new Value(20.0)),
+			wallMaterial),
+		new Shape(
+			new Plane(new VectorValue(new Vector(0, -1, 0)), new Value(20.0)),
+			wallMaterial),
+		new Shape(
+			new Plane(new VectorValue(new Vector(0, 0, 1)), new Value(0.0)),
+			wallMaterial),
+		new Shape(
+			new Plane(new VectorValue(new Vector(0, 0, -1)), new Value(20.0)),
+			wallMaterial),
+		new Shape(
+			new Translate(
 				new Scale(
-					new UnitBox(),
-					new VectorValue(new Vector(0.2, 0.2, 1000)))),
-			new VectorValue(new Vector(1, 0, 0))),
-		new Material()
-			.withTransmittance(0.8)
-			.withSmoothness(0.5)
-			.withRefraction(1.4)
-			.withColor(new Color(0.95, 0.95, 1.0)))
-]);
+					new UnitSphere(),
+					new Value(5)),
+				new Vector(10, 5, 10)),
+			new Material()
+				.withTransmittance(0.0)
+				.withSmoothness(1.0)
+				.withColor(new Color(0, 0, 0))
+				.withEmissivity(new Color(8, 8, 8))),
+		new Shape(
+			new Translate(
+				new WrapX(
+					new Translate(
+						new RotateY(
+							new Scale(
+								new Repeat(
+									new TwistZ(
+										new Scale(
+											new UnitBox(),
+											new VectorValue(new Vector(0.1, 0.1, 1000)))),
+									new VectorValue(
+										new Vector(0.6, 0, 0))),
+								new VectorValue(new Vector(1, 1, 0.3))),
+							new Value(0.5)),
+						new Vector(0, 1, 0))),
+				new Vector(0, 0, 2)),
+			new Material()
+				.withTransmittance(0.0)
+				.withSmoothness(0.5)
+				.withColor(new Color(0.7, 0.7, 0.8)))
+	])
+;
 
 const width = 512;
 const height = 512;

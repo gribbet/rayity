@@ -1,5 +1,6 @@
 import {
 	Abs,
+	Acos,
 	Add,
 	Cos,
 	Divide,
@@ -154,6 +155,95 @@ export class Translate extends DistanceFunction {
 			new Subtract(
 				position,
 				new VectorValue(this.v)));
+	}
+}
+
+export class WrapX extends DistanceFunction {
+	constructor(private x: DistanceFunction) {
+		super();
+	}
+
+	value(position: Expression) {
+		const q = new Length(
+			new FixVectorValue(
+				new Value(0),
+				new Y(position),
+				new Z(position)));
+		return this.x.value(
+			new FixVectorValue(
+				new X(position),
+				q,
+				new Acos(
+					new Divide(
+						new Y(position),
+						q))));
+	}
+}
+
+export class WrapZ extends DistanceFunction {
+	constructor(private x: DistanceFunction) {
+		super();
+	}
+
+	value(position: Expression) {
+		const q = new Length(
+			new FixVectorValue(
+				new X(position),
+				new Y(position),
+				new Value(0)));
+		return this.x.value(
+			new FixVectorValue(
+				q,
+				new Acos(
+					new Divide(
+						new X(position),
+						q)),
+				new Z(position)));
+	}
+}
+
+export class RotateX extends DistanceFunction {
+	constructor(private x: DistanceFunction,
+				private v: Expression) {
+		super();
+	}
+
+	value(position: Expression) {
+		return this.x.value(
+			new FixVectorValue(
+				new X(position),
+				new Add(new Multiply(new Cos(this.v), new Y(position)), new Multiply(new Sin(this.v), new Z(position))),
+				new Add(new Multiply(new Negative(new Sin(this.v)), new Y(position)), new Multiply(new Cos(this.v), new Z(position)))));
+	}
+}
+
+export class RotateY extends DistanceFunction {
+	constructor(private x: DistanceFunction,
+				private v: Expression) {
+		super();
+	}
+
+	value(position: Expression) {
+		return this.x.value(
+			new FixVectorValue(
+				new Add(new Multiply(new Cos(this.v), new X(position)), new Multiply(new Sin(this.v), new Z(position))),
+				new Y(position),
+				new Add(new Multiply(new Negative(new Sin(this.v)), new X(position)), new Multiply(new Cos(this.v), new Z(position)))));
+	}
+}
+
+export class RotateZ extends DistanceFunction {
+	constructor(private x: DistanceFunction,
+				private v: Expression) {
+		super();
+	}
+
+	value(position: Expression) {
+		return this.x.value(
+			new FixVectorValue(
+				new Add(new Multiply(new Cos(this.v), new X(position)), new Multiply(new Sin(this.v), new Y(position))),
+				new Add(new Multiply(new Negative(new Sin(this.v)), new X(position)), new Multiply(new Cos(this.v), new Y(position))),
+				new Z(position)))
 	}
 }
 

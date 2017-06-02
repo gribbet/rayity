@@ -194,6 +194,15 @@ export class Log extends Expression {
 	}
 }
 
+export class Acos extends Expression {
+	readonly value = `acos(${this.x})`;
+
+	constructor(private x: Expression) {
+		super([x]);
+	}
+}
+
+
 export class Clamp extends Expression {
 	readonly value = `clamp(${this.x}, 0.0, 1.0)`;
 
