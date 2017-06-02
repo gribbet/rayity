@@ -5,18 +5,18 @@ import {Code, value, variable} from "./expression";
 
 function buildShape(shape: Shape) {
 	return dependencies(shape)
-			.map(f => `
-				float f${f.id}(vec3 p) {
-					${f.body}
+			.map(shape => `
+				float shape${shape.id}(vec3 p) {
+					${shape.body}
 				}`)
-			.reduce((a, b) => a + "\n" + b, "") + "\n\n";
+			.reduce((a, b) => a + "\n" + b, "");
 }
 
-function dependencies(f: Shape): Shape[] {
-	let all: Shape[] = f.dependencies
-		.map(y => dependencies(y))
+function dependencies(shape: Shape): Shape[] {
+	let all: Shape[] = shape.dependencies
+		.map(_ => dependencies(_))
 		.reduce((a, b) => a.concat(b), [])
-		.concat(f);
+		.concat(shape);
 	return all
 		.filter((x, i) => all.indexOf(x) == i);
 }
