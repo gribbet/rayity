@@ -1,26 +1,26 @@
-import {Color, color} from "./color";
+import {Expression, value} from "./expression";
 
 export type Material = {
-	transmittance: number,
-	smoothness: number,
-	refraction: number,
-	color: Color,
-	emissivity: Color
+	transmittance: Expression,
+	smoothness: Expression,
+	refraction: Expression,
+	color: Expression,
+	emissivity: Expression
 }
 
 
 export function material(values: {
-							 transmittance?: number,
-							 smoothness?: number,
-							 refraction?: number,
-							 color?: Color,
-							 emissivity?: Color
+							 transmittance?: Expression,
+							 smoothness?: Expression,
+							 refraction?: Expression,
+							 color?: Expression,
+							 emissivity?: Expression
 						 }) {
 	return {
-		transmittance: values.transmittance || 0.0,
-		smoothness: values.smoothness || 0.0,
-		refraction: values.refraction || 1.0,
-		color: values.color || color(1, 1, 1),
-		emissivity: values.emissivity || color(0, 0, 0)
+		transmittance: values.transmittance || value(0.0),
+		smoothness: values.smoothness || value(0.0),
+		refraction: values.refraction || value(1.0),
+		color: values.color || value(1, 1, 1),
+		emissivity: values.emissivity || value(0, 0, 0)
 	};
 }

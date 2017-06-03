@@ -1,13 +1,12 @@
 import {createViewer} from "./src/viewer";
 import {material} from "./src/material";
-import {color} from "./src/color";
 import {createScene} from "./src/scene";
 import {plane, repeat, rotateY, scale, translate, union, unitCylinder, wrapX} from "./src/shape";
 import {value} from "./src/expression";
 import {entity} from "./src/entity";
 
 const wallMaterial = material({
-	color: color(0.5, 0.5, 0.5)
+	color: value(0.5, 0.5, 0.5)
 });
 
 const scene = createScene([
@@ -26,11 +25,13 @@ const scene = createScene([
 	entity(
 		plane(value(0, 0, -1), value(10)),
 		material({
-			emissivity: color(1, 1, 1)
+			emissivity: value(1, 1, 1)
 		})),
 	entity(
 		plane(value(0, 0, 1), value(1.2)),
-		wallMaterial),
+		material({
+			color: `vec3(0.7, 0.7, 0.7) * mod(floor(0.5 * sin(p.x) + 1.0) + floor(0.5 * sin(p.y) + 1.0), 2.0) + vec3(0.2, 0.2, 0.2)`
+		})),
 	entity(
 		translate(value(0, 3, 0),
 			repeat(value(0, 4, 0),
@@ -46,8 +47,10 @@ const scene = createScene([
 								repeat(value(2.2, 0, 0),
 									scale(value(0.2), unitCylinder())))))))),
 		material({
-			smoothness: 0.9,
-			color: color(0.6	, 0.5, 0.5)
+			transmittance: value(0.95),
+			refraction: value(1.4),
+			smoothness: value(0.5),
+			color: value(0.9, 0.8, 0.8)
 		}))
 ]);
 

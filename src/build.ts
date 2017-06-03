@@ -29,23 +29,23 @@ function buildEntity(entity: Entity): Code {
 			return ${entity.shape.call(variable("p"))};
 		}
 		
-		vec3 normal${entity.id}(vec3 position) {
+		vec3 normal${entity.id}(vec3 p) {
 			return normalize(vec3(
-				distance${entity.id}(position + vec3(epsilon, 0, 0)) -
-				distance${entity.id}(position - vec3(epsilon, 0, 0)),
-				distance${entity.id}(position + vec3(0, epsilon, 0)) -
-				distance${entity.id}(position - vec3(0, epsilon, 0)),
-				distance${entity.id}(position + vec3(0, 0, epsilon)) -
-				distance${entity.id}(position - vec3(0, 0, epsilon))));
+				distance${entity.id}(p + vec3(epsilon, 0, 0)) -
+				distance${entity.id}(p - vec3(epsilon, 0, 0)),
+				distance${entity.id}(p + vec3(0, epsilon, 0)) -
+				distance${entity.id}(p - vec3(0, epsilon, 0)),
+				distance${entity.id}(p + vec3(0, 0, epsilon)) -
+				distance${entity.id}(p - vec3(0, 0, epsilon))));
 		}
 		
-		Material material${entity.id}() {
+		Material material${entity.id}(vec3 p) {
 			Material m;
-			m.transmittance = ${value(entity.material.transmittance)}.x;
-			m.smoothness = ${value(entity.material.smoothness)}.x;
-			m.refraction = ${value(entity.material.refraction)}.x;
-			m.color = ${value(entity.material.color.red, entity.material.color.green, entity.material.color.blue)};
-			m.emissivity = ${value(entity.material.emissivity.red, entity.material.emissivity.green, entity.material.emissivity.blue)};
+			m.transmittance = ${entity.material.transmittance}.x;
+			m.smoothness = ${entity.material.smoothness}.x;
+			m.refraction = ${entity.material.refraction}.x;
+			m.color = ${entity.material.color};
+			m.emissivity = ${entity.material.emissivity};
 			return m;
 		}`;
 }
@@ -87,13 +87,13 @@ export function buildScene(scene: Scene): Code {
 			return vec3(0, 0, 0);
 		}
 		
-		Material calculateMaterial(int object) {` +
+		Material calculateMaterial(int object, vec3 position) {` +
 
 		scene.entities
 			.map((entity, i) => `
 			
 			if (object == ${entity.id})
-				return material${entity.id}();`)
+				return material${entity.id}(position);`)
 			.reduce((a, b) => a + b, "") + `
 			
 			Material material;

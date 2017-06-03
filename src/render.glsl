@@ -12,7 +12,7 @@ const float MAX_VALUE = 1e30;
 
 const float epsilon = 0.0001;
 const int maxSteps = 64;
-const int bounces = 8;
+const int bounces = 20;
 
 struct Closest {
     int object;
@@ -29,7 +29,7 @@ struct Material {
 
 Closest calculateClosest(vec3 position);
 vec3 calculateNormal(int object, vec3 position);
-Material calculateMaterial(int object);
+Material calculateMaterial(int object, vec3 position);
 
 vec2 random(int seed) {
 	vec2 s = uv * (1.0 + time + float(seed));
@@ -104,7 +104,7 @@ void main() {
 		if (closest.object == 0)
 		    break;
 
-        Material material = calculateMaterial(closest.object);
+        Material material = calculateMaterial(closest.object, position);
 
 		total += luminance * material.emissivity;
 		luminance *= material.color;
