@@ -95,6 +95,18 @@ export function rotateY(r: Expression, a: Shape) {
 		[a]);
 }
 
+export function sierpinski(iterations: number = 5, a: Shape = unitSphere()) {
+	return shape(`
+		for(int n = 0; n < ${iterations}; n++) {
+		   if(p.x + p.y < 0.0) p.xy = -p.yx;
+		   if(p.x + p.z < 0.0) p.xz = -p.zx;
+		   if(p.y + p.z < 0.0) p.zy = -p.yz;	
+		   p = p * 2.0 - 1.0;
+		}
+		return ${(a.call("p"))} * pow(2.0, -float(${iterations}));
+    `, [a]);
+}
+
 
 /*
 
