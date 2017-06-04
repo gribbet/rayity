@@ -97,11 +97,14 @@ export function rotateY(r: Expression, a: Shape) {
 
 export function sierpinski(iterations: number = 5, a: Shape = unitSphere()) {
 	return shape(`
+		const vec3 n1 = normalize(vec3(1, 1, 0));
+		const vec3 n2 = normalize(vec3(0, 1, 1));
+		const vec3 n3 = normalize(vec3(1, 0, 1));
 		for(int n = 0; n < ${iterations}; n++) {
-		   if(p.x + p.y < 0.0) p.xy = -p.yx;
-		   if(p.x + p.z < 0.0) p.xz = -p.zx;
-		   if(p.y + p.z < 0.0) p.zy = -p.yz;	
-		   p = p * 2.0 - 1.0;
+			p -= 2.0 * min(0.0, dot(p, n1)) * n1;
+			p -= 2.0 * min(0.0, dot(p, n2)) * n2;
+			p -= 2.0 * min(0.0, dot(p, n3)) * n3;
+			p = p * 2.0 - 1.0;
 		}
 		return ${(a.call("p"))} * pow(2.0, -float(${iterations}));
     `, [a]);
