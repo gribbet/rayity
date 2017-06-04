@@ -39,7 +39,7 @@ function buildEntity(entity: Entity): Code {
 				distance${entity.id}(p - vec3(0, 0, epsilon))));
 		}
 		
-		Material material${entity.id}(vec3 p) {
+		Material material${entity.id}(vec3 p, vec3 n, vec3 d) {
 			Material m;
 			m.transmittance = ${entity.material.transmittance}.x;
 			m.smoothness = ${entity.material.smoothness}.x;
@@ -87,13 +87,13 @@ export function buildScene(scene: Scene): Code {
 			return vec3(0, 0, 0);
 		}
 		
-		Material calculateMaterial(int object, vec3 position) {` +
+		Material calculateMaterial(int object, vec3 position, vec3 normal, vec3 direction) {` +
 
 		scene.entities
 			.map((entity, i) => `
 			
 			if (object == ${entity.id})
-				return material${entity.id}(position);`)
+				return material${entity.id}(position, normal, direction);`)
 			.reduce((a, b) => a + b, "") + `
 			
 			Material material;

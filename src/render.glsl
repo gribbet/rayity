@@ -11,8 +11,8 @@ const float PI = 3.14159;
 const float MAX_VALUE = 1e30;
 
 const float epsilon = 0.0001;
-const int maxSteps = 64;
-const int bounces = 20;
+const int maxSteps = 200;
+const int bounces = 1;
 
 struct Closest {
     int object;
@@ -29,18 +29,16 @@ struct Material {
 
 Closest calculateClosest(vec3 position);
 vec3 calculateNormal(int object, vec3 position);
-Material calculateMaterial(int object, vec3 position);
+Material calculateMaterial(int object, vec3 position, vec3 normal, vec3 direction);
 
 vec2 random(int seed) {
 	vec2 s = uv * (1.0 + time + float(seed));
-	// implementation based on: lumina.sourceforge.net/Tutorials/Noise.html
 	return vec2(
 		fract(sin(dot(s.xy, vec2(12.9898, 78.233))) * 43758.5453),
 		fract(cos(dot(s.xy, vec2(4.898, 7.23))) * 23421.631));
 }
 
 vec3 ortho(vec3 v) {
-	// See: http://lolengine.net/blog/2013/09/21/picking-orthogonal-vector-combing-coconuts
 	return abs(v.x) > abs(v.z) ? vec3(-v.y, v.x, 0.0) : vec3(0.0, -v.z, v.y);
 }
 
@@ -59,11 +57,11 @@ vec3 spherical(vec2 angle) {
 
 void main() {
     vec3 target = vec3(0, 0, 0);
-    float cameraDistance = 8.0;
+    float cameraDistance = 1.414;
     vec2 cameraAngle = vec2(-mouse.x * PI, (mouse.y + 1.0) * 0.5 * PI);
     vec3 eye = cameraDistance * spherical(cameraAngle);
 
-    float field = 60.0 * PI / 180.0;
+    float field = 80.0 * PI / 180.0;
     float focal = length(target - eye);
     float aperture = 0.02 * focal;
     vec3 look = normalize(target - eye);
@@ -104,12 +102,12 @@ void main() {
 		if (closest.object == 0)
 		    break;
 
-        Material material = calculateMaterial(closest.object, position);
+		vec3 normal = calculateNormal(closest.object, position);
+
+        Material material = calculateMaterial(closest.object, position, normal, direction);
 
 		total += luminance * material.emissivity;
 		luminance *= material.color;
-
-		vec3 normal = calculateNormal(closest.object, position);
 
 		if (dot(normal, direction) > 0.0)
 			normal = -normal;
