@@ -31,6 +31,15 @@ export function unitBox(): Shape {
 		return min(max(d.x, max(d.y, d.z)), 0.0) + length(max(d, 0.0));`);
 }
 
+export function unitTetrahedon(): Shape {
+	return shape(`
+		return (-1.0 + max(
+				max(-p.x - p.y - p.z, p.x + p.y - p.z), 
+				max(-p.x + p.y + p.z, p.x - p.y + p.z)))/sqrt(3.0);
+	`);
+
+}
+
 export function unitCylinder(): Shape {
 	return shape(`return length(p.xy) - 1.0;`);
 }
@@ -95,7 +104,7 @@ export function rotateY(r: Expression, a: Shape) {
 		[a]);
 }
 
-export function sierpinski(iterations: number = 5, a: Shape = unitSphere()) {
+export function sierpinski(iterations: number = 5, a: Shape = unitTetrahedon()) {
 	return shape(`
 		const vec3 n1 = normalize(vec3(1, 1, 0));
 		const vec3 n2 = normalize(vec3(0, 1, 1));
