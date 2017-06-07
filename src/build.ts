@@ -66,7 +66,7 @@ export function buildScene(scene: Scene): Code {
 			.map((entity, i) => `
 			
 			distance = abs(distance${entity.id}(position));
-			if (distance < closest.distance) {
+			if (distance >= epsilon && distance < closest.distance) {
 				closest.distance = distance;
 				closest.object = ${entity.id};
 			}`)
