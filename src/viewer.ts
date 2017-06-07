@@ -18,8 +18,9 @@ export function createViewer(
 	});
 
 	const settings = {
+		time: 0,
 		clicked: false,
-		mouse: {x: 0.25, y: -0.5}
+		mouse: {x: 0.0, y: 0.0}
 	};
 
 	const renderer = createRenderer(gl, scene, { width: width, height: height}, settings);
@@ -34,11 +35,15 @@ export function createViewer(
 		}
 	});
 
-	function loop() {
+	let start = 0;
+	function loop(time: number) {
+		if (!start) start = time;
+		settings.time = (time - start) / 1000.0f;
+
 		renderer.render();
 
 		requestAnimationFrame(loop);
 	}
 
-	loop();
+	requestAnimationFrame(loop);
 }

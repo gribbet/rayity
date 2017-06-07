@@ -15,6 +15,7 @@ export function createRenderer(
 		height: number
 	},
 	variables: {
+		time: number,
 		clicked: boolean,
 		mouse: {
 			x: number,
@@ -89,20 +90,17 @@ export function createRenderer(
 	gl.viewport(0, 0, options.width, options.height);
 
 	let odd = false;
-	const start = new Date().getTime();
 
 	return {
 		render: function () {
 			const read = textures[odd ? 0 : 1];
 			const write = textures[odd ? 1 : 0];
 
-			const t = new Date().getTime() - start;
-
 			gl.useProgram(program);
 			gl.bindTexture(gl.TEXTURE_2D, read);
 			gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
 			gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, write, 0);
-			gl.uniform1f(gl.getUniformLocation(program, "time"), t / 1000.0);
+			gl.uniform1f(gl.getUniformLocation(program, "time"), variables.time / 1000.0);
 			gl.uniform2f(gl.getUniformLocation(program, "mouse"), variables.mouse.x, variables.mouse.y);
 			gl.uniform1i(gl.getUniformLocation(program, "clicked"), variables.clicked ? 1 : 0);
 			gl.drawElements(gl.TRIANGLES, indices.length, gl.UNSIGNED_SHORT, 0);
