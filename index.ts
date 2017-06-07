@@ -1,7 +1,7 @@
 import {createViewer} from "./src/viewer";
 import {material} from "./src/material";
 import {createScene} from "./src/scene";
-import {scale, sierpinski, unitBox, unitCylinder, unitSphere} from "./src/shape";
+import {plane, scale, sierpinski, unitSphere} from "./src/shape";
 import {value} from "./src/expression";
 import {entity} from "./src/entity";
 
@@ -13,11 +13,15 @@ const scene = createScene([
 			emissivity: value(1, 1, 1)
 		})),
 	entity(
-		scale(value(0.5),
-			sierpinski(4, scale(value(1.4), unitSphere()))),
+		plane(value(0, 0, 1), value(1.0)),
 		material({
-			smoothness: value(1.0),
-			emissivity: `vec3(0.8, 0.7, 0.8) * dot(n, normalize(vec3(1, 2, 3)))`
+			color: value(0.5, 0.5, 0.5)
+		})),
+	entity(
+		sierpinski(4, scale(value(1.4), unitSphere())),
+		material({
+			color: value(0.9, 0.5, 0.5),
+			smoothness: value(0.99)
 		}))
 ]);
 
