@@ -38,7 +38,7 @@ export function createViewer(
 	let start = 0;
 	function loop(time: number) {
 		if (!start) start = time;
-		settings.time = (time - start) / 1000.0f;
+		settings.time = (time - start) / 1000.0;
 
 		renderer.render();
 
