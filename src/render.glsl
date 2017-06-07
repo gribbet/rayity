@@ -11,20 +11,20 @@ const float PI = 3.14159;
 const float MAX_VALUE = 1e30;
 
 const float epsilon = 0.001;
-const int maxSteps = 120;
-const int bounces = 5;
+const int maxSteps = 500;
+const int bounces = 20;
 
 struct Closest {
-    int object;
-    float distance;
+	int object;
+	float distance;
 };
 
 struct Material {
-    float transmittance;
-    float smoothness;
-    float refraction;
-    vec3 color;
-    vec3 emissivity;
+	float transmittance;
+	float smoothness;
+	float refraction;
+	vec3 color;
+	vec3 emissivity;
 };
 
 Closest calculateClosest(vec3 position);
@@ -52,21 +52,21 @@ vec3 calculateSample(vec3 normal, float smoothness, vec2 noise) {
 }
 
 vec3 spherical(vec2 angle) {
-    return vec3(sin(angle.y) * cos(angle.x), sin(angle.y) * sin(angle.x), cos(angle.y));
+	return vec3(sin(angle.y) * cos(angle.x), sin(angle.y) * sin(angle.x), cos(angle.y));
 }
 
 void main() {
-    vec3 target = vec3(0, 0, 0);
-    float cameraDistance = 2.0;
-    vec2 cameraAngle = vec2(-mouse.x * PI, (mouse.y + 1.0) * 0.5 * PI);
-    vec3 eye = cameraDistance * spherical(cameraAngle);
+	vec3 target = vec3(0, 0, 0);
+	float cameraDistance = 7.0;
+	vec2 cameraAngle = vec2(-mouse.x * PI, (mouse.y + 1.0) * 0.5 * PI);
+	vec3 eye = cameraDistance * spherical(cameraAngle);
 
-    float field = 80.0 * PI / 180.0;
-    float focal = length(target - eye);
-    float aperture = 0.001 * focal;
-    vec3 look = normalize(target - eye);
-    vec3 up = normalize(target - spherical(vec2(cameraAngle.x, cameraAngle.y + PI * 0.5)));
-    vec3 right = cross(look, up);
+	float field = 80.0 * PI / 180.0;
+	float focal = length(target - eye);
+	float aperture = 0.001 * focal;
+	vec3 look = normalize(target - eye);
+	vec3 up = normalize(target - spherical(vec2(cameraAngle.x, cameraAngle.y + PI * 0.5)));
+	vec3 right = cross(look, up);
 	float aspectRatio = resolution.x / resolution.y;
 
 	vec2 noise = random(0);
@@ -84,7 +84,7 @@ void main() {
 	vec3 luminance = vec3(1, 1, 1);
 
 	for (int bounce = 1; bounce <= bounces; bounce++) {
-	    Closest closest;
+		Closest closest;
 		vec3 position = from;
 		float distance = 0.0;
 
@@ -92,47 +92,48 @@ void main() {
 			closest = calculateClosest(position);
 
 			if (closest.distance < epsilon) {
-			    distance = distance + closest.distance;
-                break;
-            }
+				distance = distance + closest.distance;
+				position = from + direction * distance;
+				break;
+			}
 
 		 	distance = distance + closest.distance * 0.5;
 			position = from + direction * distance;
-            distance -= epsilon;
+			distance -= epsilon;
 		}
 
 		if (closest.object == 0)
-		    break;
+			break;
 
 		vec3 normal = calculateNormal(closest.object, position);
 
-        Material material = calculateMaterial(closest.object, position, normal, direction);
+		Material material = calculateMaterial(closest.object, position, normal, direction);
 
-        bool backface = dot(normal, direction) > 0.0;
+		bool backface = dot(normal, direction) > 0.0;
 		if (backface)
-		    normal = -normal;
+			normal = -normal;
 
 		vec2 noise = random(bounce);
 
 		normal = calculateSample(normal, material.smoothness, noise);
 
 		if (noise.y < material.transmittance) {
-			from = position + direction * epsilon * (1.0 - 1.0 / dot(direction, normal));
+			from = position - 2.0 * direction * epsilon / dot(direction, normal);
 			if (!backface)
-			    direction = refract(direction, normal, 1.0 / material.refraction);
+				direction = refract(direction, normal, 1.0 / material.refraction);
 		} else {
-		    from = position - direction * epsilon;
+			from = position;
+			direction = reflect(direction, normal);
+
 			total += luminance * material.emissivity;
 			luminance *= material.color;
-
-			direction = reflect(direction, normal);
 		}
 	}
 
 	vec4 original = texture2D(texture, uv * 0.5 - 0.5);
 
-   if (clicked)
-        original *= 0.5;
+	if (clicked)
+		original *= 0.5;
 
 	gl_FragColor = vec4(original.xyz + total, original.w + 1.0);
 }

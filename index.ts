@@ -1,27 +1,30 @@
 import {createViewer} from "./src/viewer";
 import {material} from "./src/material";
 import {createScene} from "./src/scene";
-import {plane, scale, sierpinski, unitSphere} from "./src/shape";
+import {plane, translate, unitSphere} from "./src/shape";
 import {value} from "./src/expression";
 import {entity} from "./src/entity";
 
 const scene = createScene([
 	entity(
-		scale(value(10), unitSphere()),
+		plane(value(0, 0, 1), value(2.0)),
 		material({
-			color: value(0, 0, 0),
-			emissivity: value(1, 1, 1)
+			color: `mod(floor(p.x) + floor(p.y), 2.0) * vec3(0.9) + vec3(0.1)`,
+			smoothness: value(0.5)
 		})),
 	entity(
-		plane(value(0, 0, 1), value(1.0)),
-		material({
-			color: value(0.5, 0.5, 0.5)
-		})),
-	entity(
-		sierpinski(4, scale(value(1.4), unitSphere())),
+		unitSphere(),
 		material({
 			color: value(0.9, 0.5, 0.5),
-			smoothness: value(0.99)
+			transmittance: value(0.9),
+			smoothness: value(0.9),
+			refraction: value(1.4)
+		})),
+	entity(
+		translate(value(4, 1, 4), unitSphere()),
+		material({
+			color: value(0, 0, 0),
+			emissivity: value(20, 20, 20)
 		}))
 ]);
 
