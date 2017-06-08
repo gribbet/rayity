@@ -1,15 +1,15 @@
 import {Shape} from "./shape";
 import {Entity} from "./entity";
 import {Scene} from "./scene";
-import {Code, value, variable} from "./expression";
+import {Code, variable} from "./expression";
 
 function buildShape(shape: Shape) {
 	return dependencies(shape)
-			.map(shape => `
+		.map(shape => `
 				float shape${shape.id}(vec3 p) {
 					${shape.body}
 				}`)
-			.reduce((a, b) => a + "\n" + b, "");
+		.reduce((a, b) => a + "\n" + b, "");
 }
 
 function dependencies(shape: Shape): Shape[] {
@@ -44,6 +44,7 @@ function buildEntity(entity: Entity): Code {
 			m.transmittance = ${entity.material.transmittance}.x;
 			m.smoothness = ${entity.material.smoothness}.x;
 			m.refraction = ${entity.material.refraction}.x;
+			m.scatter = ${entity.material.scatter}.x;
 			m.color = ${entity.material.color};
 			m.emissivity = ${entity.material.emissivity};
 			return m;

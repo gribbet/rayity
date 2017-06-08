@@ -12,7 +12,7 @@ const float MAX_VALUE = 1e30;
 
 const float epsilon = 0.0001;
 const int maxSteps = 150;
-const int bounces = 5;
+const int bounces = 40;
 
 struct Closest {
 	int object;
@@ -23,6 +23,7 @@ struct Material {
 	float transmittance;
 	float smoothness;
 	float refraction;
+	float scatter;
 	vec3 color;
 	vec3 emissivity;
 };
@@ -51,13 +52,20 @@ vec3 calculateSample(vec3 normal, float smoothness, vec2 noise) {
 	return q * (cos(noise.x) * o1  + sin(noise.x) * o2) + noise.y * normal;
 }
 
+vec3 sampleSphere(vec2 noise) {
+    noise.x *= 2.0 * PI;
+    noise.y = noise.y * 2.0 - 1.0;
+    float q = sqrt(1.0 - noise.y * noise.y);
+    return vec3(q * cos(noise.x), q * sin(noise.x), noise.y);
+}
+
 vec3 spherical(vec2 angle) {
 	return vec3(sin(angle.y) * cos(angle.x), sin(angle.y) * sin(angle.x), cos(angle.y));
 }
 
 void main() {
 	vec3 target = vec3(0, 0, 0);
-	float cameraDistance = 15.0;
+	float cameraDistance = 6.0;
 	vec2 cameraAngle = vec2(-mouse.x * PI, (mouse.y + 1.0) * 0.5 * PI);
 	vec3 eye = cameraDistance * spherical(cameraAngle);
 
@@ -82,11 +90,19 @@ void main() {
 
 	vec3 total = vec3(0, 0, 0);
 	vec3 luminance = vec3(1, 1, 1);
+	Material air;
+	air.scatter = MAX_VALUE;
+	air.refraction = 1.0;
+	Material current = air;
 
 	for (int bounce = 1; bounce <= bounces; bounce++) {
 		Closest closest;
 		vec3 position = from;
 		float distance = 0.0;
+
+		vec2 noise = random(bounce);
+
+		float max = -log(noise.y) * current.scatter;
 
 		for (int step = 1; step <= maxSteps; step++) {
 			closest = calculateClosest(position);
@@ -97,6 +113,12 @@ void main() {
 				break;
 			}
 
+			if (distance > max) {
+			    distance = max;
+			    position = from + direction * distance;
+			    break;
+			}
+
 		 	distance = distance + closest.distance * 0.5;
 			position = from + direction * distance;
 			distance -= epsilon;
@@ -104,6 +126,14 @@ void main() {
 
 		if (closest.object == 0)
 			break;
+
+        if (distance == max) {
+            from = position;
+            direction = sampleSphere(noise);
+            total += luminance * current.emissivity;
+            luminance *= current.color;
+            continue;
+        }
 
 		vec3 normal = calculateNormal(closest.object, position);
 
@@ -113,14 +143,16 @@ void main() {
 		if (backface)
 			normal = -normal;
 
-		vec2 noise = random(bounce);
-
 		normal = calculateSample(normal, material.smoothness, noise);
 
 		if (noise.y < material.transmittance) {
 			from = position - 2.0 * direction * epsilon / dot(direction, normal);
-			if (!backface)
-				direction = refract(direction, normal, 1.0 / material.refraction);
+			direction = refract(direction, normal, current.refraction / material.refraction);
+
+			if (backface)
+			    current = air;
+            else
+			    current = material;
 		} else {
 			from = position;
 			direction = reflect(direction, normal);
