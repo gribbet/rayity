@@ -88,6 +88,15 @@ export function blend(k: number, a: Shape, b: Shape) {
 		[a, b]);
 }
 
+export function twistZ(x: Expression, a: Shape) {
+	return shape(`
+		float c = cos(${x}.x * p.z);
+		float s = sin(${x}.x * p.z);
+		mat2  m = mat2(c, -s, s, c);
+		return ${a.call(`vec3(m * p.xy, p.z)`)};`,
+		[a]);
+}
+
 export function wrapX(a: Shape) {
 	return shape(`
 		float q = length(p.yz);
@@ -114,7 +123,7 @@ export function sierpinski(iterations: number = 5, a: Shape = unitTetrahedon()) 
 			p -= 2.0 * min(0.0, dot(p, n2)) * n2;
 			p -= 2.0 * min(0.0, dot(p, n3)) * n3;
 			p = p * 2.0 - 1.0;
-		}
-		return ${(a.call("p"))} * pow(2.0, -float(${iterations}));
+		} 
+		return ${(a.call("p"))} * pow(2.0, -float(n));
     `, [a]);
 }
