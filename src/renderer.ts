@@ -8,9 +8,12 @@ export type Renderer = {
 export function createRenderer(
 	gl: WebGLRenderingContext,
 	scene: Scene,
-	options: {
-		width: number,
-		height: number
+	options1: {
+		width?: number,
+		height?: number,
+		epsilon?: number,
+		steps?: number,
+		bounces?: number
 	},
 	variables: {
 		time: number,
@@ -20,6 +23,14 @@ export function createRenderer(
 			y: number
 		}
 	}): Renderer {
+			
+	const options = {
+		width: options1.width || 512,
+		height: options1.height || 512,
+		epsilon: options1.epsilon || 0.001,
+		steps: options1.steps || 100,
+		bounces: options1.bounces || 5
+	}
 
 	if (!gl.getExtension("OES_texture_float"))
 		throw "No float texture support";
@@ -73,11 +84,11 @@ export function createRenderer(
 		varying vec2 uv;
 		
 		const float PI = 3.14159;
-		const float MAX_VALUE = 1e30;
+		const float MAX_VALUE = 1e10;
 		
-		const float epsilon = 0.001;
-		const int maxSteps = 150;
-		const int bounces = 5;
+		const float epsilon = ${options.epsilon};
+		const int steps = ${options.steps};
+		const int bounces = ${options.bounces};
 		
 		struct Closest {
 			int object;
@@ -169,7 +180,7 @@ export function createRenderer(
 		
 				float max = -log(noise.y) * current.scatter;
 		
-				for (int step = 1; step <= maxSteps; step++) {
+				for (int step = 1; step <= steps; step++) {
 					closest = calculateClosest(position);
 		
 					if (closest.distance < epsilon) {

@@ -19,21 +19,21 @@ export function createViewer(
 	if (gl === null)
 		return null;
 
-	const settings = {
+	const variables = {
 		time: 0,
 		clicked: false,
 		mouse: {x: 0.0, y: 0.0}
 	};
 
-	const renderer = createRenderer(gl, scene, {width: width, height: height}, settings);
+	const renderer = createRenderer(gl, scene, {width: width, height: height}, variables);
 
-	canvas.addEventListener("mousedown", () => settings.clicked = true);
-	document.addEventListener("mouseup", () => settings.clicked = false);
+	canvas.addEventListener("mousedown", () => variables.clicked = true);
+	document.addEventListener("mouseup", () => variables.clicked = false);
 
 	canvas.addEventListener("mousemove", event => {
-		if (settings.clicked) {
-			settings.mouse.x += event.movementX / canvas.width;
-			settings.mouse.y += -event.movementY / canvas.width;
+		if (variables.clicked) {
+			variables.mouse.x += event.movementX / canvas.width;
+			variables.mouse.y += -event.movementY / canvas.width;
 		}
 	});
 
@@ -41,7 +41,7 @@ export function createViewer(
 
 	function loop(time: number) {
 		if (!start) start = time;
-		settings.time = (time - start) / 1000.0;
+		variables.time = (time - start) / 1000.0;
 
 		renderer.render();
 
