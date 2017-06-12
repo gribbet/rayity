@@ -128,7 +128,7 @@ export function sierpinski(iterations: number = 5, a: Shape = unitTetrahedon()) 
     `, [a]);
 }
 
-export function mandelbulb(iterations: number = 20) {
+export function mandelbulb(iterations: number = 5) {
 	return shape(`
 		vec3 z = p;
 		float d = 0.0;

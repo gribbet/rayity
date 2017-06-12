@@ -4,8 +4,8 @@
 	"scripts": {
 		"build": "tsc"
 	},
-	"main": "dist/index.js",
-	"typings": "dist/index",
+	"main": "lib/index.js",
+	"typings": "lib/index",
 	"license": "MIT",
 	"devDependencies": {
 		"typescript": "^2.3.2"

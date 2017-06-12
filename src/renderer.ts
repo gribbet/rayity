@@ -37,12 +37,14 @@ export function createRenderer(
 
 	const renderShader = gl.createShader(gl.FRAGMENT_SHADER);
 	gl.shaderSource(renderShader, `
-		attribute vec2 position;
+		precision highp float;
+
 		varying vec2 uv;
+		uniform sampler2D texture;
 		
 		void main() {
-			gl_Position = vec4(position, 0, 1);
-			uv = position.xy;
+			vec4 result = texture2D(texture, uv * 0.5 - 0.5);
+			gl_FragColor = vec4(pow(result.xyz / result.w, vec3(1.0 / 2.2)), 1.0);
 		}`);
 	gl.compileShader(renderShader);
 
@@ -75,7 +77,7 @@ export function createRenderer(
 		
 		const float epsilon = 0.001;
 		const int maxSteps = 150;
-		const int bounces = 10;
+		const int bounces = 5;
 		
 		struct Closest {
 			int object;
