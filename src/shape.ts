@@ -118,12 +118,43 @@ export function sierpinski(iterations: number = 5, a: Shape = unitTetrahedon()) 
 		const vec3 n1 = normalize(vec3(1, 1, 0));
 		const vec3 n2 = normalize(vec3(0, 1, 1));
 		const vec3 n3 = normalize(vec3(1, 0, 1));
-		for(int n = 0; n < ${iterations}; n++) {
+		for(int i = 1; i <= ${iterations}; i++) {
 			p -= 2.0 * min(0.0, dot(p, n1)) * n1;
 			p -= 2.0 * min(0.0, dot(p, n2)) * n2;
 			p -= 2.0 * min(0.0, dot(p, n3)) * n3;
 			p = p * 2.0 - 1.0;
 		} 
-		return ${(a.call("p"))} * pow(2.0, -float(n));
+		return ${(a.call("p"))} * pow(2.0, -float(i));
     `, [a]);
+}
+
+export function mandelbulb(iterations: number = 20) {
+	return shape(`
+		vec3 z = p;
+		float d = 0.0;
+		float q = 8.0;
+		float s = 1.0;
+		
+		for(int i = 1; i <= ${iterations}; i++) {
+		
+			float r = length(z);
+	
+			if(r > 2.0) {
+				d = 0.5 * log(r) * r / s;
+				continue;
+			}
+			
+			float th = atan(length(z.xy), z.z);
+			float phi = atan(z.y, z.x);
+			float rado = pow(r, 8.0);
+			s = pow(r, 7.0) * 7.0 * s + 1.0;
+			
+			float sint = sin(th * q);
+			z.x = rado * sint * cos(phi * q);
+			z.y = rado * sint * sin(phi * q);
+			z.z = rado * cos(th * q) ;
+			z += p;
+		}
+		
+		return d;`);
 }

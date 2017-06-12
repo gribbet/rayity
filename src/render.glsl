@@ -10,9 +10,9 @@ varying vec2 uv;
 const float PI = 3.14159;
 const float MAX_VALUE = 1e30;
 
-const float epsilon = 0.0001;
+const float epsilon = 0.001;
 const int maxSteps = 150;
-const int bounces = 40;
+const int bounces = 10;
 
 struct Closest {
 	int object;
@@ -65,13 +65,13 @@ vec3 spherical(vec2 angle) {
 
 void main() {
 	vec3 target = vec3(0, 0, 0);
-	float cameraDistance = 6.0;
+	float cameraDistance = 0.1;
 	vec2 cameraAngle = vec2(-mouse.x * PI, (mouse.y + 1.0) * 0.5 * PI);
 	vec3 eye = cameraDistance * spherical(cameraAngle);
 
 	float field = 80.0 * PI / 180.0;
 	float focal = length(target - eye);
-	float aperture = 0.02 * focal;
+	float aperture = 0.001 * focal;
 	vec3 look = normalize(target - eye);
 	vec3 up = normalize(target - spherical(vec2(cameraAngle.x, cameraAngle.y + PI * 0.5)));
 	vec3 right = cross(look, up);
