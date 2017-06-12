@@ -2,14 +2,12 @@
 	"name": "typescript-raymarch",
 	"version": "1.0.0",
 	"scripts": {
-		"start": "webpack-dev-server --content-base ./public"
+		"build": "tsc"
 	},
+	"main": "dist/index.js",
+	"typings": "dist/index",
 	"license": "MIT",
 	"devDependencies": {
-		"raw-loader": "^0.5.1",
-		"ts-loader": "^2.1.0",
-		"typescript": "^2.3.2",
-		"webpack": "^2.4.5",
-		"webpack-dev-server": "^2.4.5"
+		"typescript": "^2.3.2"
 	}
 }

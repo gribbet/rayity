@@ -16,6 +16,8 @@ export function createViewer(
 	const gl = canvas.getContext("webgl", {
 		preserveDrawingBuffer: false
 	});
+	if (gl === null)
+		return null;
 
 	const settings = {
 		time: 0,
@@ -23,7 +25,7 @@ export function createViewer(
 		mouse: {x: 0.0, y: 0.0}
 	};
 
-	const renderer = createRenderer(gl, scene, { width: width, height: height}, settings);
+	const renderer = createRenderer(gl, scene, {width: width, height: height}, settings);
 
 	canvas.addEventListener("mousedown", () => settings.clicked = true);
 	document.addEventListener("mouseup", () => settings.clicked = false);
@@ -36,6 +38,7 @@ export function createViewer(
 	});
 
 	let start = 0;
+
 	function loop(time: number) {
 		if (!start) start = time;
 		settings.time = (time - start) / 1000.0;

@@ -1,11 +1,9 @@
 {
 	"compilerOptions": {
+		"target": "es5",
 		"module": "commonjs",
-		"noImplicitAny": true,
-		"sourceMap": true,
-		"target": "es5"
-	},
-	"files": [
-		"index.ts"
-	]
+		"declaration": true,
+		"outDir": "./dist",
+		"strict": true
+	}
 }
