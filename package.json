@@ -1,6 +1,6 @@
 {
-	"name": "typescript-raymarch",
-	"version": "1.0.0",
+	"name": "traymarch",
+	"version": "0.1.0",
 	"scripts": {
 		"build": "tsc",
 		"postinstall": "npm run build"
