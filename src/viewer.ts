@@ -1,16 +1,26 @@
 import {Scene} from "./scene";
 import {createRenderer} from "./renderer";
 
-const width = 512;
-const height = 512;
 
 export function createViewer(
 	element: HTMLElement,
-	scene: Scene) {
+	scene: Scene,
+	options_?: {
+		width?: number,
+		height?: number,
+		epsilon?: number,
+		steps?: number,
+		bounces?: number
+	}) {
+
+	const options = Object.assign({
+		width: 512,
+		height: 512,
+	}, options_ || {});
 
 	const canvas = document.createElement("canvas");
-	canvas.width = width;
-	canvas.height = height;
+	canvas.width = options.width;
+	canvas.height = options.height;
 	element.appendChild(canvas);
 
 	const gl = canvas.getContext("webgl", {
@@ -25,7 +35,7 @@ export function createViewer(
 		mouse: {x: 0.0, y: 0.0}
 	};
 
-	const renderer = createRenderer(gl, scene, {width: width, height: height}, variables);
+	const renderer = createRenderer(gl, scene, options, variables);
 
 	canvas.addEventListener("mousedown", () => variables.clicked = true);
 	document.addEventListener("mouseup", () => variables.clicked = false);

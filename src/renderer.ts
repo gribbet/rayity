@@ -1,4 +1,4 @@
-import {buildScene} from "./build";
+import {build} from "./build";
 import {Scene} from "./scene";
 
 export type Renderer = {
@@ -8,29 +8,28 @@ export type Renderer = {
 export function createRenderer(
 	gl: WebGLRenderingContext,
 	scene: Scene,
-	options1: {
+	options_?: {
 		width?: number,
 		height?: number,
 		epsilon?: number,
 		steps?: number,
 		bounces?: number
 	},
-	variables: {
+	variables_?: {
 		time: number,
 		clicked: boolean,
 		mouse: {
 			x: number,
 			y: number
 		}
-	}): Renderer {
-
-	const options = {
-		width: options1.width || 512,
-		height: options1.height || 512,
-		epsilon: options1.epsilon || 0.001,
-		steps: options1.steps || 100,
-		bounces: options1.bounces || 5
-	}
+	}) {
+	const options = Object.assign({
+		width: 512,
+		height: 512,
+		epsilon: 0.001,
+		steps: 100,
+		bounces: 5
+	}, options_ || {});
 
 	if (!gl.getExtension("OES_texture_float"))
 		throw "No float texture support";
@@ -70,180 +69,8 @@ export function createRenderer(
 		}`);
 	gl.compileShader(vertexShader);
 
-	console.log(buildScene(scene));
-
 	const screenShader = gl.createShader(gl.FRAGMENT_SHADER);
-	const source = `
-		precision highp float;
-	
-		uniform sampler2D texture;
-		uniform vec2 resolution;
-		uniform vec2 mouse;
-		uniform bool clicked;
-		uniform float time;
-		varying vec2 uv;
-		
-		const float PI = 3.14159;
-		const float MAX_VALUE = 1e10;
-		
-		const float epsilon = ${options.epsilon};
-		const int steps = ${options.steps};
-		const int bounces = ${options.bounces};
-		
-		struct Closest {
-			int object;
-			float distance;
-		};
-		
-		struct Material {
-			float transmittance;
-			float smoothness;
-			float refraction;
-			float scatter;
-			vec3 color;
-			vec3 emissivity;
-		};
-		
-		Closest calculateClosest(vec3 position);
-		vec3 calculateNormal(int object, vec3 position);
-		Material calculateMaterial(int object, vec3 position, vec3 normal, vec3 direction);
-		
-		vec2 random(int seed) {
-			vec2 s = uv * (1.0 + time + float(seed));
-			return vec2(
-				fract(sin(dot(s.xy, vec2(12.9898, 78.233))) * 43758.5453),
-				fract(cos(dot(s.xy, vec2(4.898, 7.23))) * 23421.631));
-		}
-		
-		vec3 ortho(vec3 v) {
-			return abs(v.x) > abs(v.z) ? vec3(-v.y, v.x, 0.0) : vec3(0.0, -v.z, v.y);
-		}
-		
-		vec3 calculateSample(vec3 normal, float smoothness, vec2 noise) {
-			vec3 o1 = normalize(ortho(normal));
-			vec3 o2 = normalize(cross(normal, o1));
-			noise.x *= 2.0 * PI;
-			noise.y = sqrt(smoothness + (1.0 - smoothness) * noise.y);
-			float q = sqrt(1.0 - noise.y * noise.y);
-			return q * (cos(noise.x) * o1  + sin(noise.x) * o2) + noise.y * normal;
-		}
-		
-		vec3 sampleSphere(vec2 noise) {
-			noise.x *= 2.0 * PI;
-			noise.y = noise.y * 2.0 - 1.0;
-			float q = sqrt(1.0 - noise.y * noise.y);
-			return vec3(q * cos(noise.x), q * sin(noise.x), noise.y);
-		}
-		
-		vec3 spherical(vec2 angle) {
-			return vec3(sin(angle.y) * cos(angle.x), cos(angle.y), sin(angle.y) * sin(angle.x));
-		}
-		
-		void main() {
-			vec3 eye = ${scene.camera.eye};
-			vec3 target = ${scene.camera.target};
-			vec3 up = ${scene.camera.up};
-			float fieldOfView = ${scene.camera.fieldOfView}.x;
-			float aperture = ${scene.camera.aperture}.x;
-			
-			vec3 look = normalize(target - eye);
-			up = normalize(up - dot(look, up) * look);
-			vec3 right = cross(look, up);
-		
-			vec2 noise = random(0);
-		
-			vec2 offset = noise.x * aperture * vec2(cos(noise.y * 2.0 * PI), sin(noise.y * 2.0 * PI));
-			vec3 from = eye + offset.x * right + offset.y * up;
-			
-			vec2 angle = (uv * 0.5 + (noise - 0.5) / resolution) * fieldOfView;
-			vec3 screen = vec3(cos(angle.y) * sin(angle.x), sin(angle.y), cos(angle.y) * cos(angle.x));
-			vec3 to = eye + length(target - eye) * (right * screen.x + up * screen.y + look * screen.z); 
-			
-			vec3 direction = normalize(to - from);
-			
-			vec3 total = vec3(0, 0, 0);
-			vec3 luminance = vec3(1, 1, 1);
-			Material air;
-			air.scatter = MAX_VALUE;
-			air.refraction = 1.0;
-			Material current = air;
-		
-			for (int bounce = 1; bounce <= bounces; bounce++) {
-				Closest closest;
-				vec3 position = from;
-				float distance = 0.0;
-		
-				vec2 noise = random(bounce);
-		
-				float max = -log(noise.y) * current.scatter;
-		
-				for (int step = 1; step <= steps; step++) {
-					closest = calculateClosest(position);
-		
-					if (closest.distance < epsilon) {
-						distance = distance + closest.distance;
-						position = from + direction * distance;
-						break;
-					}
-		
-					if (distance > max) {
-						distance = max;
-						position = from + direction * distance;
-						break;
-					}
-		
-					distance = distance + closest.distance * 0.5;
-					position = from + direction * distance;
-					distance -= epsilon;
-				}
-		
-				if (closest.object == 0)
-					break;
-		
-				if (distance == max) {
-					from = position;
-					direction = sampleSphere(noise);
-					total += luminance * current.emissivity;
-					luminance *= current.color;
-					continue;
-				}
-		
-				vec3 normal = calculateNormal(closest.object, position);
-		
-				Material material = calculateMaterial(closest.object, position, normal, direction);
-		
-				bool backface = dot(normal, direction) > 0.0;
-				if (backface)
-					normal = -normal;
-		
-				normal = calculateSample(normal, material.smoothness, noise);
-		
-				if (noise.y < material.transmittance) {
-					from = position - 2.0 * direction * epsilon / dot(direction, normal);
-					direction = refract(direction, normal, current.refraction / material.refraction);
-		
-					if (backface)
-						current = air;
-					else
-						current = material;
-				} else {
-					from = position;
-					direction = reflect(direction, normal);
-		
-					total += luminance * material.emissivity;
-					luminance *= material.color;
-				}
-			}
-		
-			vec4 original = texture2D(texture, uv * 0.5 - 0.5);
-		
-			if (clicked)
-				original *= 0.5;
-		
-			gl_FragColor = vec4(original.xyz + total, original.w + 1.0);
-		}` + buildScene(scene);
-	console.log(source);
-	gl.shaderSource(screenShader, source);
+	gl.shaderSource(screenShader, build(scene, options));
 	gl.compileShader(screenShader);
 	if (gl.getShaderInfoLog(screenShader))
 		throw gl.getShaderInfoLog(screenShader);
@@ -291,11 +118,17 @@ export function createRenderer(
 			const read = textures[odd ? 0 : 1];
 			const write = textures[odd ? 1 : 0];
 
+			const variables = Object.assign({
+				time: 0,
+				clicked: false,
+				mouse: {x: 0, y: 0}
+			}, variables_ || {});
+
 			gl.useProgram(program);
 			gl.bindTexture(gl.TEXTURE_2D, read);
 			gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
 			gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, write, 0);
-			gl.uniform1f(gl.getUniformLocation(program, "time"), variables.time);
+			gl.uniform1f(gl.getUniformLocation(program, "time"), variables.time || 0);
 			gl.uniform2f(gl.getUniformLocation(program, "mouse"), variables.mouse.x, variables.mouse.y);
 			gl.uniform1i(gl.getUniformLocation(program, "clicked"), variables.clicked ? 1 : 0);
 			gl.drawElements(gl.TRIANGLES, indices.length, gl.UNSIGNED_SHORT, 0);

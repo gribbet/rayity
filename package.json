@@ -13,6 +13,6 @@
 	"typings": "lib/index",
 	"license": "MIT",
 	"devDependencies": {
-		"typescript": "^2.3.2"
+		"typescript": "^2.3.4"
 	}
 }
