@@ -23,7 +23,7 @@ export function createRenderer(
 			y: number
 		}
 	}): Renderer {
-			
+
 	const options = {
 		width: options1.width || 512,
 		height: options1.height || 512,
@@ -73,7 +73,7 @@ export function createRenderer(
 	console.log(buildScene(scene));
 
 	const screenShader = gl.createShader(gl.FRAGMENT_SHADER);
-	gl.shaderSource(screenShader, `
+	const source = `
 		precision highp float;
 	
 		uniform sampler2D texture;
@@ -136,34 +136,31 @@ export function createRenderer(
 		}
 		
 		vec3 spherical(vec2 angle) {
-			return vec3(sin(angle.y) * cos(angle.x), sin(angle.y) * sin(angle.x), cos(angle.y));
+			return vec3(sin(angle.y) * cos(angle.x), cos(angle.y), sin(angle.y) * sin(angle.x));
 		}
 		
 		void main() {
-			vec3 target = vec3(0, 0, 0);
-			float cameraDistance = 4.0;
-			vec2 cameraAngle = vec2(-mouse.x * PI, (mouse.y + 1.0) * 0.5 * PI);
-			vec3 eye = cameraDistance * spherical(cameraAngle);
-		
-			float field = 80.0 * PI / 180.0;
-			float focal = length(target - eye);
-			float aperture = 0.001 * focal;
+			vec3 eye = ${scene.camera.eye};
+			vec3 target = ${scene.camera.target};
+			vec3 up = ${scene.camera.up};
+			float fieldOfView = ${scene.camera.fieldOfView}.x;
+			float aperture = ${scene.camera.aperture}.x;
+			
 			vec3 look = normalize(target - eye);
-			vec3 up = normalize(target - spherical(vec2(cameraAngle.x, cameraAngle.y + PI * 0.5)));
+			up = normalize(up - dot(look, up) * look);
 			vec3 right = cross(look, up);
-			float aspectRatio = resolution.x / resolution.y;
 		
 			vec2 noise = random(0);
 		
-			vec2 origin = noise.x * aperture * vec2(cos(noise.y * 2.0 * PI), sin(noise.y * 2.0 * PI));
-		
-			vec2 px = uv + (noise * 2.0 - 1.0) / resolution.x;
-			vec3 screen = eye + (look + tan(field * 0.5) * (px.x * aspectRatio * right + px.y * up)) * focal;
-		
-			vec3 from = eye + right * origin.x + up * origin.y;
-			vec3 direction = normalize(screen - from);
-		
-		
+			vec2 offset = noise.x * aperture * vec2(cos(noise.y * 2.0 * PI), sin(noise.y * 2.0 * PI));
+			vec3 from = eye + offset.x * right + offset.y * up;
+			
+			vec2 angle = (uv * 0.5 + (noise - 0.5) / resolution) * fieldOfView;
+			vec3 screen = vec3(cos(angle.y) * sin(angle.x), sin(angle.y), cos(angle.y) * cos(angle.x));
+			vec3 to = eye + length(target - eye) * (right * screen.x + up * screen.y + look * screen.z); 
+			
+			vec3 direction = normalize(to - from);
+			
 			vec3 total = vec3(0, 0, 0);
 			vec3 luminance = vec3(1, 1, 1);
 			Material air;
@@ -244,7 +241,9 @@ export function createRenderer(
 				original *= 0.5;
 		
 			gl_FragColor = vec4(original.xyz + total, original.w + 1.0);
-		}` + buildScene(scene));
+		}` + buildScene(scene);
+	console.log(source);
+	gl.shaderSource(screenShader, source);
 	gl.compileShader(screenShader);
 	if (gl.getShaderInfoLog(screenShader))
 		throw gl.getShaderInfoLog(screenShader);

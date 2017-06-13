@@ -1,11 +1,18 @@
 import {Entity} from "./entity";
+import {Camera, mouseCamera} from "./camera";
 
 export type Scene = {
-	entities: Entity[]
+	entities: Entity[];
+	camera: Camera;
 }
 
-export function scene(entities: Entity[]) {
+export function scene(values?: {
+						  entities?: Entity[],
+						  camera?: Camera
+					  }) {
+	values = values || {};
 	return {
-		entities: entities
+		entities: values.entities || [],
+		camera: values.camera || mouseCamera()
 	};
 }

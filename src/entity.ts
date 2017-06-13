@@ -8,7 +8,11 @@ export type Entity = {
 }
 
 let lastId = 1;
-export function entity(shape: Shape, material: Material) {
+
+export function entity(
+	shape: Shape,
+	material: Material) {
+
 	return {
 		id: lastId++,
 		shape: shape,
