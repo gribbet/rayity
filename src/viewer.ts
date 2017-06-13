@@ -1,7 +1,6 @@
 import {Scene} from "./scene";
 import {createRenderer} from "./renderer";
 
-
 export function createViewer(
 	element: HTMLElement,
 	scene: Scene,

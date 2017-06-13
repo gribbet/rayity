@@ -10,7 +10,7 @@ export type Material = {
 }
 
 
-export function material(values: {
+export function material(values?: {
 							 transmittance?: Expression,
 							 smoothness?: Expression,
 							 refraction?: Expression,
@@ -18,12 +18,12 @@ export function material(values: {
 							 color?: Expression,
 							 emissivity?: Expression
 						 }) {
-	return {
-		transmittance: values.transmittance || value(0.0),
-		smoothness: values.smoothness || value(0.0),
-		refraction: values.refraction || value(1.0),
-		scatter: values.scatter || value(1e30),
-		color: values.color || value(1, 1, 1),
-		emissivity: values.emissivity || value(0, 0, 0)
-	};
+	return Object.assign({
+		transmittance: value(0),
+		smoothness: value(0),
+		refraciton: value(1),
+		scatter: value(1e10),
+		color: value(1, 1, 1),
+		emissivity: value(0, 0, 0)
+	}, values || {});
 }

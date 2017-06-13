@@ -10,9 +10,8 @@ export function scene(values?: {
 						  entities?: Entity[],
 						  camera?: Camera
 					  }) {
-	values = values || {};
-	return {
-		entities: values.entities || [],
-		camera: values.camera || mouseCamera()
-	};
+	return Object.assign({
+		entities: [],
+		camera: mouseCamera()
+	}, values || {});
 }
