@@ -141,7 +141,7 @@ export function createRenderer(
 		
 		void main() {
 			vec3 target = vec3(0, 0, 0);
-			float cameraDistance = 0.1;
+			float cameraDistance = 4.0;
 			vec2 cameraAngle = vec2(-mouse.x * PI, (mouse.y + 1.0) * 0.5 * PI);
 			vec3 eye = cameraDistance * spherical(cameraAngle);
 		

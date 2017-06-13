@@ -4,7 +4,7 @@ export type Scene = {
 	entities: Entity[]
 }
 
-export function createScene(entities: Entity[]) {
+export function scene(entities: Entity[]) {
 	return {
 		entities: entities
 	};
