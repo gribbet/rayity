@@ -21,7 +21,7 @@ export function material(values?: {
 	return Object.assign({
 		transmittance: value(0),
 		smoothness: value(0),
-		refraciton: value(1),
+		refraction: value(1),
 		scatter: value(1e10),
 		color: value(1, 1, 1),
 		emissivity: value(0, 0, 0)

@@ -111,7 +111,7 @@ export function build(
 		steps: number,
 		bounces: number
 	}): Code {
-	return `
+	const code = `
 	precision highp float;
 
 	uniform sampler2D texture;
@@ -280,4 +280,8 @@ export function build(
 
 		gl_FragColor = vec4(original.xyz + total, original.w + 1.0);
 	}` + buildScene(scene);
+
+	console.log(code);
+
+	return code;
 }
