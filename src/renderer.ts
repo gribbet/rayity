@@ -13,7 +13,8 @@ export function createRenderer(
 		height?: number,
 		epsilon?: number,
 		steps?: number,
-		bounces?: number
+		bounces?: number,
+		iterations?: number
 	},
 	variables_?: {
 		time: number,
@@ -28,7 +29,8 @@ export function createRenderer(
 		height: 512,
 		epsilon: 0.001,
 		steps: 100,
-		bounces: 5
+		bounces: 5,
+		iterations: 1
 	}, options_ || {});
 
 	if (!gl.getExtension("OES_texture_float"))

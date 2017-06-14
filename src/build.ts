@@ -110,6 +110,7 @@ export function build(
 		epsilon: number,
 		steps: number,
 		bounces: number
+		iterations: number
 	}): Code {
 	const code = `
 	precision highp float;
@@ -127,6 +128,7 @@ export function build(
 	const float epsilon = ${options.epsilon};
 	const int steps = ${options.steps};
 	const int bounces = ${options.bounces};
+	const int iterations = ${options.iterations};
 
 	struct Closest {
 		int object;
@@ -188,97 +190,98 @@ export function build(
 		up = normalize(up - dot(look, up) * look);
 		vec3 right = cross(look, up);
 
-		vec2 noise = random(0);
-
-		vec2 offset = noise.x * aperture * vec2(cos(noise.y * 2.0 * PI), sin(noise.y * 2.0 * PI));
-		vec3 from = eye + offset.x * right + offset.y * up;
-
-		vec2 angle = (uv * 0.5 + (noise - 0.5) / resolution) * fieldOfView;
-		vec3 screen = vec3(cos(angle.y) * sin(angle.x), sin(angle.y), cos(angle.y) * cos(angle.x));
-		vec3 to = eye + length(target - eye) * (right * screen.x + up * screen.y + look * screen.z);
-
-		vec3 direction = normalize(to - from);
-
-		vec3 total = vec3(0, 0, 0);
-		vec3 luminance = vec3(1, 1, 1);
-		Material air;
-		air.scatter = MAX_VALUE;
-		air.refraction = 1.0;
-		Material current = air;
-
-		for (int bounce = 1; bounce <= bounces; bounce++) {
-			Closest closest;
-			vec3 position = from;
-			float distance = 0.0;
-
-			vec2 noise = random(bounce);
-
-			float max = -log(noise.y) * current.scatter;
-
-			for (int step = 1; step <= steps; step++) {
-				closest = calculateClosest(position);
-
-				if (closest.distance < epsilon) {
-					distance = distance + closest.distance;
+		for(int iteration = 0; iteration <= iterations; iteration++) {
+			vec2 noise = random(iteration);
+	
+			vec2 offset = noise.x * aperture * vec2(cos(noise.y * 2.0 * PI), sin(noise.y * 2.0 * PI));
+			vec3 from = eye + offset.x * right + offset.y * up;
+	
+			vec2 angle = (uv * 0.5 + (noise - 0.5) / resolution) * fieldOfView;
+			vec3 screen = vec3(cos(angle.y) * sin(angle.x), sin(angle.y), cos(angle.y) * cos(angle.x));
+			vec3 to = eye + length(target - eye) * (right * screen.x + up * screen.y + look * screen.z);
+	
+			vec3 direction = normalize(to - from);
+	
+			vec3 total = vec3(0, 0, 0);
+			vec3 luminance = vec3(1, 1, 1);
+			Material air;
+			air.scatter = MAX_VALUE;
+			air.refraction = 1.0;
+			Material current = air;
+	
+			for (int bounce = 1; bounce <= bounces; bounce++) {
+				Closest closest;
+				vec3 position = from;
+				float distance = 0.0;
+	
+				vec2 noise = random(iteration * bounces + bounce);
+	
+				float max = -log(noise.y) * current.scatter;
+	
+				for (int step = 1; step <= steps; step++) {
+					closest = calculateClosest(position);
+	
+					if (closest.distance < epsilon) {
+						distance = distance + closest.distance;
+						position = from + direction * distance;
+						break;
+					}
+	
+					if (distance > max) {
+						distance = max;
+						position = from + direction * distance;
+						break;
+					}
+	
+					distance = distance + closest.distance * 0.5;
 					position = from + direction * distance;
-					break;
+					distance -= epsilon;
 				}
-
-				if (distance > max) {
-					distance = max;
-					position = from + direction * distance;
+	
+				if (closest.object == 0)
 					break;
+	
+				if (distance == max) {
+					from = position;
+					direction = sampleSphere(noise);
+					gl_FragColor += vec4(luminance * current.emissivity, 1);
+					luminance *= current.color;
+					continue;
 				}
-
-				distance = distance + closest.distance * 0.5;
-				position = from + direction * distance;
-				distance -= epsilon;
-			}
-
-			if (closest.object == 0)
-				break;
-
-			if (distance == max) {
-				from = position;
-				direction = sampleSphere(noise);
-				total += luminance * current.emissivity;
-				luminance *= current.color;
-				continue;
-			}
-
-			vec3 normal = calculateNormal(closest.object, position);
-
-			Material material = calculateMaterial(closest.object, position, normal, direction);
-
-			bool backface = dot(normal, direction) > 0.0;
-			if (backface)
-				normal = -normal;
-
-			normal = calculateSample(normal, material.smoothness, noise);
-
-			if (noise.y < material.transmittance) {
-				from = position - 2.0 * direction * epsilon / dot(direction, normal);
-				direction = refract(direction, normal, current.refraction / material.refraction);
-
+	
+				vec3 normal = calculateNormal(closest.object, position);
+	
+				Material material = calculateMaterial(closest.object, position, normal, direction);
+	
+				bool backface = dot(normal, direction) > 0.0;
 				if (backface)
-					current = air;
-				else
-					current = material;
-			} else {
-				from = position;
-				direction = reflect(direction, normal);
-
-				total += luminance * material.emissivity;
-				luminance *= material.color;
+					normal = -normal;
+	
+				normal = calculateSample(normal, material.smoothness, noise);
+	
+				if (noise.y < material.transmittance) {
+					from = position - 2.0 * direction * epsilon / dot(direction, normal);
+					direction = refract(direction, normal, current.refraction / material.refraction);
+	
+					if (backface)
+						current = air;
+					else
+						current = material;
+				} else {
+					from = position;
+					direction = reflect(direction, normal);
+	
+					gl_FragColor += vec4(luminance * material.emissivity, 1);
+					luminance *= material.color;
+				}
 			}
 		}
 
-		vec4 original = texture2D(texture, uv * 0.5 - 0.5);
+		gl_FragColor += texture2D(texture, uv * 0.5 - 0.5);
 
 		if (clicked)
-			original *= 0.5;
+			gl_FragColor *= 0.5;
 
-		gl_FragColor = vec4(original.xyz + total, original.w + 1.0);
 	}` + buildScene(scene);
 
 	console.log(code);

@@ -9,7 +9,8 @@ export function createViewer(
 		height?: number,
 		epsilon?: number,
 		steps?: number,
-		bounces?: number
+		bounces?: number,
+		iterations?: number
 	}) {
 
 	const options = Object.assign({
