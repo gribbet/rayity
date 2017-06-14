@@ -189,6 +189,8 @@ export function build(
 		vec3 look = normalize(target - eye);
 		up = normalize(up - dot(look, up) * look);
 		vec3 right = cross(look, up);
+		
+		vec4 result;
 
 		for(int iteration = 0; iteration <= iterations; iteration++) {
 			vec2 noise = random(iteration);
@@ -202,7 +204,6 @@ export function build(
 	
 			vec3 direction = normalize(to - from);
 	
-			vec3 total = vec3(0, 0, 0);
 			vec3 luminance = vec3(1, 1, 1);
 			Material air;
 			air.scatter = MAX_VALUE;
@@ -244,7 +245,7 @@ export function build(
 				if (distance == max) {
 					from = position;
 					direction = sampleSphere(noise);
-					gl_FragColor += vec4(luminance * current.emissivity, 1);
+					result += vec4(luminance * current.emissivity, 1);
 					luminance *= current.color;
 					continue;
 				}
@@ -271,16 +272,18 @@ export function build(
 					from = position;
 					direction = reflect(direction, normal);
 	
-					gl_FragColor += vec4(luminance * material.emissivity, 1);
+					result += vec4(luminance * material.emissivity, 1);
 					luminance *= material.color;
 				}
-			}
+			}	
 		}
 
-		gl_FragColor += texture2D(texture, uv * 0.5 - 0.5);
-
-		if (clicked)
-			gl_FragColor *= 0.5;
+		vec4 original = texture2D(texture, uv * 0.5 - 0.5);
+		
+		if (clicked) 
+			original *= 0.5;
+			
+		gl_FragColor = original + result;
 
 	}` + buildScene(scene);
 
