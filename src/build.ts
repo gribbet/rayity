@@ -1,5 +1,5 @@
 import {Shape} from "./shape";
-import {Entity} from "./entity";
+import {Model} from "./model";
 import {Scene} from "./scene";
 import {Code, variable} from "./expression";
 
@@ -21,39 +21,39 @@ function dependencies(shape: Shape): Shape[] {
 		.filter((x, i) => all.indexOf(x) == i);
 }
 
-function buildEntity(entity: Entity): Code {
+function buildModel(model: Model): Code {
 	return `
-		${buildShape(entity.shape)}
+		${buildShape(model.shape)}
 	
-		float distance${entity.id}(vec3 p) {
-			return ${entity.shape.call(variable("p"))};
+		float distance${model.id}(vec3 p) {
+			return ${model.shape.call(variable("p"))};
 		}
 		
-		vec3 normal${entity.id}(vec3 p) {
+		vec3 normal${model.id}(vec3 p) {
 			return normalize(vec3(
-				distance${entity.id}(p + vec3(epsilon, 0, 0)) -
-				distance${entity.id}(p - vec3(epsilon, 0, 0)),
-				distance${entity.id}(p + vec3(0, epsilon, 0)) -
-				distance${entity.id}(p - vec3(0, epsilon, 0)),
-				distance${entity.id}(p + vec3(0, 0, epsilon)) -
-				distance${entity.id}(p - vec3(0, 0, epsilon))));
+				distance${model.id}(p + vec3(epsilon, 0, 0)) -
+				distance${model.id}(p - vec3(epsilon, 0, 0)),
+				distance${model.id}(p + vec3(0, epsilon, 0)) -
+				distance${model.id}(p - vec3(0, epsilon, 0)),
+				distance${model.id}(p + vec3(0, 0, epsilon)) -
+				distance${model.id}(p - vec3(0, 0, epsilon))));
 		}
 		
-		Material material${entity.id}(vec3 p, vec3 n, vec3 d) {
+		Material material${model.id}(vec3 p, vec3 n, vec3 d) {
 			Material m;
-			m.transmittance = ${entity.material.transmittance}.x;
-			m.smoothness = ${entity.material.smoothness}.x;
-			m.refraction = ${entity.material.refraction}.x;
-			m.scatter = ${entity.material.scatter}.x;
-			m.color = ${entity.material.color};
-			m.emissivity = ${entity.material.emissivity};
+			m.transmittance = ${model.material.transmittance}.x;
+			m.smoothness = ${model.material.smoothness}.x;
+			m.refraction = ${model.material.refraction}.x;
+			m.scatter = ${model.material.scatter}.x;
+			m.color = ${model.material.color};
+			m.emissivity = ${model.material.emissivity};
 			return m;
 		}`;
 }
 
 function buildScene(scene: Scene): Code {
 	return scene.entities
-			.map(_ => buildEntity(_))
+			.map(_ => buildModel(_))
 			.reduce((a, b) => a + b, "") + `
 		
 		Closest calculateClosest(vec3 position) {
@@ -64,12 +64,12 @@ function buildScene(scene: Scene): Code {
 			closest.distance = MAX_VALUE;` +
 
 		scene.entities
-			.map((entity, i) => `
+			.map((model, i) => `
 			
-			distance = abs(distance${entity.id}(position));
+			distance = abs(distance${model.id}(position));
 			if (distance < closest.distance) {
 				closest.distance = distance;
-				closest.object = ${entity.id};
+				closest.object = ${model.id};
 			}`)
 			.reduce((a, b) => a + b, "") + `
 			
@@ -79,10 +79,10 @@ function buildScene(scene: Scene): Code {
 		vec3 calculateNormal(int object, vec3 position) {` +
 
 		scene.entities
-			.map((entity, i) => `
+			.map((model, i) => `
 			
-			if (object == ${entity.id})
-				return normal${entity.id}(position);`)
+			if (object == ${model.id})
+				return normal${model.id}(position);`)
 			.reduce((a, b) => a + b, "") + `
 			
 			return vec3(0, 0, 0);
@@ -91,10 +91,10 @@ function buildScene(scene: Scene): Code {
 		Material calculateMaterial(int object, vec3 position, vec3 normal, vec3 direction) {` +
 
 		scene.entities
-			.map((entity, i) => `
+			.map((model, i) => `
 			
-			if (object == ${entity.id})
-				return material${entity.id}(position, normal, direction);`)
+			if (object == ${model.id})
+				return material${model.id}(position, normal, direction);`)
 			.reduce((a, b) => a + b, "") + `
 			
 			Material material;

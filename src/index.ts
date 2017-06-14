@@ -1,5 +1,5 @@
 export * from "./expression";
-export * from "./entity";
+export * from "./model";
 export * from "./material";
 export * from "./scene";
 export * from "./shape";

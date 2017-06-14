@@ -1,20 +1,20 @@
 import {Material} from "./material";
 import {Shape} from "./shape";
 
-export type Entity = {
+export type Model = {
 	id: number,
 	shape: Shape,
 	material: Material
 }
 
-let lastId = 1;
+let id = 1;
 
-export function entity(
+export function model(
 	shape: Shape,
 	material: Material) {
 
 	return {
-		id: lastId++,
+		id: id++,
 		shape: shape,
 		material: material
 	};

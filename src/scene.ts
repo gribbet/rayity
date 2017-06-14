@@ -1,13 +1,13 @@
-import {Entity} from "./entity";
+import {Model} from "./model";
 import {Camera, mouseCamera} from "./camera";
 
 export type Scene = {
-	entities: Entity[];
+	entities: Model[];
 	camera: Camera;
 }
 
 export function scene(values?: {
-						  entities?: Entity[],
+						  entities?: Model[],
 						  camera?: Camera
 					  }) {
 	return Object.assign({
