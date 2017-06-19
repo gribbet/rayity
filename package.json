@@ -2,7 +2,7 @@
 	"name": "traymarch",
 	"version": "0.1.0",
 	"scripts": {
-		"build": "tsc",
+		"build": "tsc -w",
 		"postinstall": "npm run build"
 	},
 	"main": "lib/index.js",

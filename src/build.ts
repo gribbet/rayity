@@ -261,20 +261,26 @@ export function build(
 				normal = calculateSample(normal, material.smoothness, noise);
 	
 				if (noise.y < material.transmittance) {
-					from = position - 2.0 * direction * epsilon / dot(direction, normal);
-					direction = refract(direction, normal, current.refraction / material.refraction);
-	
+					float eta = current.refraction / material.refraction;
 					if (backface)
-						current = air;
-					else
+						eta = 1.0 / eta;
+				
+					vec3 refracted = refract(direction, normal, eta);
+					if (refracted != vec3(0)) {
+						from = position - 2.0 * direction * epsilon / dot(direction, normal);
+						direction = refracted;
 						current = material;
-				} else {
-					from = position;
-					direction = reflect(direction, normal);
-	
-					result += vec4(luminance * material.emissivity, 1);
-					luminance *= material.color;
+					 	if (backface)
+							current = air;
+						continue;
+					}
 				}
+				
+				from = position;
+				direction = reflect(direction, normal);
+
+				result += vec4(luminance * material.emissivity, 1);
+				luminance *= material.color;
 			}	
 		}
 
