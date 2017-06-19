@@ -42,8 +42,8 @@ export function createViewer(
 
 	canvas.addEventListener("mousemove", event => {
 		if (variables.clicked) {
-			variables.mouse.x += event.movementX / canvas.width;
-			variables.mouse.y += -event.movementY / canvas.width;
+			variables.mouse.x += event.movementX / canvas.clientWidth;
+			variables.mouse.y += -event.movementY / canvas.clientHeight;
 		}
 	});
 
