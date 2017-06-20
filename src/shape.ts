@@ -41,7 +41,7 @@ export function unitTetrahedon(): Shape {
 }
 
 export function unitCylinder(): Shape {
-	return shape(`return length(p.xy) - 1.0;`);
+	return shape(`return length(p.xz) - 1.0;`);
 }
 
 export function plane(normal: Expression, offset: Expression) {
