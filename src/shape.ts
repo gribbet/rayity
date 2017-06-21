@@ -1,4 +1,4 @@
-import {Code, Expression, value} from "./expression";
+import { Code, Expression, value } from "./expression";
 
 export type Shape = {
 	readonly id: number,
@@ -89,12 +89,7 @@ export function blend(k: number, a: Shape, b: Shape) {
 }
 
 export function twistZ(x: Expression, a: Shape) {
-	return shape(`
-		float c = cos(${x}.x * p.z);
-		float s = sin(${x}.x * p.z);
-		mat2  m = mat2(c, -s, s, c);
-		return ${a.call(`vec3(m * p.xy, p.z)`)};`,
-		[a]);
+	return rotateZ(`vec3(p.z * ${x}.x)`, a);
 }
 
 export function wrapX(a: Shape) {
@@ -104,12 +99,30 @@ export function wrapX(a: Shape) {
 		[a]);
 }
 
-export function rotateY(r: Expression, a: Shape) {
+export function rotateX(x: Expression, a: Shape) {
 	return shape(`
-	return ${a.call(`vec3(
-		cos(${r}.x) * p.x + sin(${r}.x) * p.z,
-		p.y,
-		-sin(${r}.x) * p.x + cos(${r}.x) * p.z)`)};`,
+		float c = cos(${x}.x);
+		float s = sin(${x}.x);
+		mat3 m = mat3(1, 0, 0, 0, c, s, 0, -s, c);
+		return ${a.call(`m * p`)};`,
+		[a]);
+}
+
+export function rotateY(x: Expression, a: Shape) {
+	return shape(`
+		float c = cos(${x}.x);
+		float s = sin(${x}.x);
+		mat3 m = mat3(c, 0, -s, 0, 1, 0, s, 0, c);
+		return ${a.call(`m * p`)};`,
+		[a]);
+}
+
+export function rotateZ(x: Expression, a: Shape) {
+	return shape(`
+		float c = cos(${x}.x);
+		float s = sin(${x}.x);
+		mat3 m = mat3(c, s, 0, -s, c, 0, 0, 0, 1);
+		return ${a.call(`m * p`)};`,
 		[a]);
 }
 
@@ -124,7 +137,7 @@ export function sierpinski(iterations: number = 5, a: Shape = unitTetrahedon()) 
 			p -= 2.0 * min(0.0, dot(p, n3)) * n3;
 			p = p * 2.0 - 1.0;
 		} 
-		return ${(a.call("p"))} * pow(2.0, -float(i));
+		return ${(a.call("p"))} * pow(2.0, -float(${iterations}));
     `, [a]);
 }
 
