@@ -2,16 +2,16 @@ import {Model} from "./model";
 import {Camera, mouseCamera} from "./camera";
 
 export type Scene = {
-	entities: Model[];
+	models: Model[];
 	camera: Camera;
 }
 
 export function scene(values?: {
-						  entities?: Model[],
+						  models?: Model[],
 						  camera?: Camera
 					  }) {
 	return Object.assign({
-		entities: [],
+		models: [],
 		camera: mouseCamera()
 	}, values || {});
 }

@@ -52,7 +52,7 @@ function buildModel(model: Model): Code {
 }
 
 function buildScene(scene: Scene): Code {
-	return scene.entities
+	return scene.models
 			.map(_ => buildModel(_))
 			.reduce((a, b) => a + b, "") + `
 		
@@ -63,7 +63,7 @@ function buildScene(scene: Scene): Code {
 			closest.object = 0;
 			closest.distance = MAX_VALUE;` +
 
-		scene.entities
+		scene.models
 			.map((model, i) => `
 			
 			distance = abs(distance${model.id}(position));
@@ -78,7 +78,7 @@ function buildScene(scene: Scene): Code {
 		
 		vec3 calculateNormal(int object, vec3 position) {` +
 
-		scene.entities
+		scene.models
 			.map((model, i) => `
 			
 			if (object == ${model.id})
@@ -90,7 +90,7 @@ function buildScene(scene: Scene): Code {
 		
 		Material calculateMaterial(int object, vec3 position, vec3 normal, vec3 direction) {` +
 
-		scene.entities
+		scene.models
 			.map((model, i) => `
 			
 			if (object == ${model.id})
