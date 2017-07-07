@@ -44,6 +44,14 @@ export function unitCylinder(): Shape {
 	return shape(`return length(p.xz) - 1.0;`);
 }
 
+
+
+export function torus(): Shape {
+	return shape(`
+		vec2 q = vec2(length(p.xz) - 1.0, p.y);
+  		return length(q) - 0.1;`);
+}
+
 export function plane(normal: Expression, offset: Expression) {
 	return shape(`return dot(p, ${normal}) + ${offset}.x;`);
 }
@@ -88,6 +96,14 @@ export function blend(k: number, a: Shape, b: Shape) {
 		[a, b]);
 }
 
+export function twistX(x: Expression, a: Shape) {
+	return rotateZ(`vec3(p.x * ${x}.x)`, a);
+}
+
+export function twistY(x: Expression, a: Shape) {
+	return rotateZ(`vec3(p.y * ${x}.x)`, a);
+}
+
 export function twistZ(x: Expression, a: Shape) {
 	return rotateZ(`vec3(p.z * ${x}.x)`, a);
 }
@@ -126,11 +142,19 @@ export function rotateZ(x: Expression, a: Shape) {
 		[a]);
 }
 
+export function mirror(n: Expression, a: Shape) {
+	return shape(`
+		vec3 n = normalize(${n});
+		p -= 2.0 * min(0.0, dot(p, n)) * n;
+		return ${a.call(`p`)};`,
+		[a]);
+}
+
 export function sierpinski(iterations: number = 5, a: Shape = unitTetrahedon()) {
 	return shape(`
 		const vec3 n1 = normalize(vec3(1, 1, 0));
-		const vec3 n2 = normalize(vec3(0, 1, 1));
-		const vec3 n3 = normalize(vec3(1, 0, 1));
+		const vec3 n2 = normalize(vec3(1, 0, 1));
+		const vec3 n3 = normalize(vec3(0, 1, 1));
 		for(int i = 1; i <= ${iterations}; i++) {
 			p -= 2.0 * min(0.0, dot(p, n1)) * n1;
 			p -= 2.0 * min(0.0, dot(p, n2)) * n2;
