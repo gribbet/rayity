@@ -37,7 +37,7 @@ export function spotlightMaterial(options: {
 	let color = options.color || value(1, 1, 1);
 	let spread = options.spread || value(1);
 	return material({
-		color: value(0),
+		transmittance: value(1),
 		emissivity: `${color} / ${spread}.x * pow(dot(normalize(p), normalize(${direction})), 1.0 / ${spread}.x - 1.0)`
 	});
 }

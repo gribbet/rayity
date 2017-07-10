@@ -253,6 +253,8 @@ export function build(
 				vec3 normal = calculateNormal(closest.object, position);
 	
 				Material material = calculateMaterial(closest.object, position, normal, direction);
+
+				result += vec4(luminance * material.emissivity, 1);
 	
 				bool backface = dot(normal, direction) > 0.0;
 				if (backface)
@@ -279,7 +281,6 @@ export function build(
 				from = position;
 				direction = reflect(direction, normal);
 
-				result += vec4(luminance * material.emissivity, 1);
 				luminance *= material.color;
 			}	
 		}
