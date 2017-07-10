@@ -67,7 +67,7 @@ export function scale(x: Expression, a: Shape) {
 }
 
 export function repeat(x: Expression, a: Shape) {
-	return shape(`return ${a.call(`mod(p, ${x}) - ${x} * 0.5`)};`,
+	return shape(`return ${a.call(`mod(p - ${x} * 0.5, ${x}) - ${x} * 0.5`)};`,
 		[a]);
 }
 
@@ -86,11 +86,11 @@ export function difference(a: Shape, b: Shape) {
 		[a, b]);
 }
 
-export function blend(k: number, a: Shape, b: Shape) {
+export function blend(k: Expression, a: Shape, b: Shape) {
 	return shape(`
 		float a = ${a.call("p")};
 		float b = ${b.call("p")};
-		const float k = ${value(k)}.x;
+		float k = ${k}.x;
 		float h = clamp(0.5 + 0.5 * (b - a) / k, 0.0, 1.0);
 		return mix(b, a, h) - k * h * (1.0 - h);`,
 		[a, b]);
