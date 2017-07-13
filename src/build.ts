@@ -1,7 +1,7 @@
-import {Shape} from "./shape";
-import {Model} from "./model";
-import {Scene} from "./scene";
-import {Code, variable} from "./expression";
+import { Shape } from "./shape";
+import { Model } from "./model";
+import { Scene } from "./scene";
+import { Code, variable } from "./expression";
 
 function buildShape(shape: Shape) {
 	return dependencies(shape)
@@ -53,8 +53,8 @@ function buildModel(model: Model): Code {
 
 function buildScene(scene: Scene): Code {
 	return scene.models
-			.map(_ => buildModel(_))
-			.reduce((a, b) => a + b, "") + `
+		.map(_ => buildModel(_))
+		.reduce((a, b) => a + b, "") + `
 		
 		Closest calculateClosest(vec3 position) {
 			Closest closest;
@@ -123,7 +123,7 @@ export function build(
 	varying vec2 uv;
 
 	const float PI = 3.14159;
-	const float MAX_VALUE = 1e10;
+	const float MAX_VALUE = 1e5;
 
 	const float epsilon = ${options.epsilon};
 	const int steps = ${options.steps};
@@ -261,6 +261,11 @@ export function build(
 					normal = -normal;
 	
 				normal = calculateSample(normal, material.smoothness, noise);
+
+				if (material.color == vec3(0))
+					break;
+
+				luminance *= material.color;
 	
 				if (noise.y < material.transmittance) {
 					float eta = current.refraction / material.refraction;
@@ -280,9 +285,8 @@ export function build(
 				
 				from = position;
 				direction = reflect(direction, normal);
+			}
 
-				luminance *= material.color;
-			}	
 		}
 
 		vec4 original = texture2D(texture, uv * 0.5 - 0.5);

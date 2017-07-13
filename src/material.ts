@@ -30,14 +30,16 @@ export function material(values?: {
 export function spotlightMaterial(options: {
 	direction?: Expression,
 	color?: Expression,
-	spread?: Expression
+	spread?: Expression,
+	ambient?: Expression,
 }): Material {
 	options = options || {};
 	let direction = options.direction || value(0, 1, 0);
 	let color = options.color || value(1, 1, 1);
 	let spread = options.spread || value(1);
+	let ambient = options.ambient || value(0);
 	return material({
-		transmittance: value(1),
-		emissivity: `${color} / ${spread}.x * pow(dot(normalize(p), normalize(${direction})) * 0.5 + 0.5, 1.0 / ${spread}.x - 1.0)`
+		color: value(0),
+		emissivity: `${color} / ${spread}.x * pow(dot(normalize(p), normalize(${direction})) * 0.5 + 0.5, 1.0 / ${spread}.x - 1.0) + ${ambient}`
 	});
 }
