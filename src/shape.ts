@@ -66,6 +66,11 @@ export function scale(x: Expression, a: Shape) {
 		[a]);
 }
 
+export function stretch(x: Expression, a: Shape) {
+	return shape(`return ${a.call(`p / ${x}`)}; `,
+		[a]);
+}
+
 export function repeat(x: Expression, a: Shape) {
 	return shape(`return ${a.call(`mod(p - ${x} * 0.5, ${x}) - ${x} * 0.5`)};`,
 		[a]);
@@ -94,6 +99,12 @@ export function blend(k: Expression, a: Shape, b: Shape) {
 		float h = clamp(0.5 + 0.5 * (b - a) / k, 0.0, 1.0);
 		return mix(b, a, h) - k * h * (1.0 - h);`,
 		[a, b]);
+}
+
+export function expand(k: Expression, a: Shape) {
+	return shape(`
+		return ${a.call(`p`)} - ${k}.x;`,
+		[a]);
 }
 
 export function twistX(x: Expression, a: Shape) {
@@ -138,6 +149,25 @@ export function rotateZ(x: Expression, a: Shape) {
 		float c = cos(${x}.x);
 		float s = sin(${x}.x);
 		mat3 m = mat3(c, s, 0, -s, c, 0, 0, 0, 1);
+		return ${a.call(`m * p`)};`,
+		[a]);
+}
+
+export function rotate(axis: Expression, x: Expression, a: Shape) {
+	return shape(`
+		vec3 u = normalize(${axis});
+		float c = cos(${x}.x);
+		float s = sin(${x}.x);
+		mat3 m = mat3(
+			c + u.x * u.x * (1.0 - c), 
+			u.x * u.y * (1.0 - c) - u.z * s,
+			u.x * u.z * (1.0 - c) + u.y * s,
+			u.y * u.x * (1.0 - c) + u.z * s,
+			c + u.y * u.y * (1.0 - c),
+			u.x * u.y * (1.0 - c) - u.x * s,
+			u.z * u.x * (1.0 - c) - u.y * s,
+			u.z * u.y * (1.0 - c) + u.x * s,
+			c +  u.z * u.z * (1.0 - c));
 		return ${a.call(`m * p`)};`,
 		[a]);
 }
