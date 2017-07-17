@@ -207,6 +207,7 @@ export function build(
 			vec3 luminance = vec3(1);
 			Material air;
 			air.refraction = 1.0;
+			air.scatter = MAX_VALUE;
 			Material current = air;
 	
 			for (int bounce = 1; bounce <= bounces; bounce++) {
@@ -216,9 +217,7 @@ export function build(
 	
 				vec2 noise = random(iteration * bounces + bounce);
 	
-				float scatter = MAX_VALUE;
-				if (current.scatter > 0.0)
-					scatter = -log(noise.y) * current.scatter;
+				float scatter = -log(noise.y) * current.scatter;
 	
 				for (int step = 1; step <= steps; step++) {
 					closest = calculateClosest(position);

@@ -21,7 +21,7 @@ export function material(values?: {
 		transmittance: value(0),
 		smoothness: value(0),
 		refraction: value(1),
-		scatter: value(0), 
+		scatter: value(1e20), 
 		color: value(1, 1, 1),
 		emissivity: value(0, 0, 0)
 	}, values || {});
