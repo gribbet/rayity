@@ -66,8 +66,8 @@ function buildScene(scene: Scene): Code {
 		scene.models
 			.map((model, i) => `
 			
-			distance = distance${model.id}(position);
-			if (abs(distance) < abs(closest.distance)) {
+			distance = abs(distance${model.id}(position));
+			if (distance < closest.distance) {
 				closest.distance = distance;
 				closest.object = ${model.id};
 			}`)
@@ -222,10 +222,10 @@ export function build(
 				for (int step = 1; step <= steps; step++) {
 					closest = calculateClosest(position);
 
-					if (abs(closest.distance) < epsilon)
+					if (closest.distance < epsilon)
 						break;
 	
-					distance = distance + abs(closest.distance) * 0.5;
+					distance = distance + closest.distance * 0.5;
 					distance = min(distance, scatter);					
 					position = from + direction * distance;
 
