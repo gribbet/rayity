@@ -66,8 +66,8 @@ function buildScene(scene: Scene): Code {
 		scene.models
 			.map((model, i) => `
 			
-			distance = abs(distance${model.id}(position));
-			if (distance < closest.distance) {
+			distance = distance${model.id}(position);
+			if (abs(distance) < abs(closest.distance)) {
 				closest.distance = distance;
 				closest.object = ${model.id};
 			}`)
@@ -190,9 +190,9 @@ export function build(
 		up = normalize(up - dot(look, up) * look);
 		vec3 right = cross(look, up);
 		
-		vec4 result;
+		vec3 total;
 
-		for(int iteration = 0; iteration <= iterations; iteration++) {
+		for(int iteration = 1; iteration <= iterations; iteration++) {
 			vec2 noise = random(iteration);
 	
 			vec2 offset = noise.x * aperture * vec2(cos(noise.y * 2.0 * PI), sin(noise.y * 2.0 * PI));
@@ -204,9 +204,8 @@ export function build(
 	
 			vec3 direction = normalize(to - from);
 	
-			vec3 luminance = vec3(1, 1, 1);
+			vec3 luminance = vec3(1);
 			Material air;
-			air.scatter = MAX_VALUE;
 			air.refraction = 1.0;
 			Material current = air;
 	
@@ -217,56 +216,52 @@ export function build(
 	
 				vec2 noise = random(iteration * bounces + bounce);
 	
-				float max = -log(noise.y) * current.scatter;
+				float scatter = MAX_VALUE;
+				if (current.scatter > 0.0)
+					scatter = -log(noise.y) * current.scatter;
 	
 				for (int step = 1; step <= steps; step++) {
 					closest = calculateClosest(position);
-	
-					if (closest.distance < epsilon) {
-						distance = distance + closest.distance;
-						position = from + direction * distance;
+
+					if (abs(closest.distance) < epsilon)
 						break;
-					}
 	
-					if (distance > max) {
-						distance = max;
-						position = from + direction * distance;
-						break;
-					}
-	
-					distance = distance + closest.distance * 0.5;
+					distance = distance + abs(closest.distance) * 0.5;
+					distance = min(distance, scatter);					
 					position = from + direction * distance;
-					distance -= epsilon;
+
+					if (distance == scatter)
+						break;
+				}
+
+				if (closest.object == 0) {
+					total += luminance;
+					break;
 				}
 	
-				if (closest.object == 0)
-					break;
-	
-				if (distance == max) {
+				if (distance == scatter) {
 					from = position;
 					direction = sampleSphere(noise);
-					result += vec4(luminance * current.emissivity, 1);
+					total += luminance * current.emissivity;
 					luminance *= current.color;
 					continue;
 				}
 	
 				vec3 normal = calculateNormal(closest.object, position);
-	
+
 				Material material = calculateMaterial(closest.object, position, normal, direction);
 
-				result += vec4(luminance * material.emissivity, 1);
-	
-				bool backface = dot(normal, direction) > 0.0;
-				if (backface)
-					normal = -normal;
-	
-				normal = calculateSample(normal, material.smoothness, noise);
+				total += luminance * material.emissivity;
 
 				if (material.color == vec3(0))
 					break;
-
-				luminance *= material.color;
 	
+				bool backface = dot(direction, normal) > 0.0; 
+				if (backface)
+					normal = -normal; 
+	
+				normal = calculateSample(normal, material.smoothness, noise);
+				
 				if (noise.y < material.transmittance) {
 					float eta = current.refraction / material.refraction;
 					if (backface)
@@ -274,7 +269,7 @@ export function build(
 				
 					vec3 refracted = refract(direction, normal, eta);
 					if (refracted != vec3(0)) {
-						from = position - 2.0 * direction * epsilon / dot(direction, normal);
+						from = position - 2.0 * epsilon * normal;
 						direction = refracted;
 						current = material;
 					 	if (backface)
@@ -282,19 +277,19 @@ export function build(
 						continue;
 					}
 				}
-				
-				from = position;
+
+				luminance *= material.color;				
+				from = position + epsilon * normal;
 				direction = reflect(direction, normal);
 			}
-
 		}
-
+ 
 		vec4 original = texture2D(texture, uv * 0.5 - 0.5);
 		
 		if (clicked) 
 			original *= 0.5;
 			
-		gl_FragColor = original + result;
+		gl_FragColor = original + vec4(total, iterations);
 
 	}` + buildScene(scene);
 
