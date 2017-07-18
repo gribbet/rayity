@@ -206,8 +206,9 @@ export function build(
 	
 			vec3 luminance = vec3(1);
 			Material air;
-			air.refraction = 1.0;
-			air.scatter = MAX_VALUE;
+			air.refraction = ${scene.air.refraction}.x;
+			air.scatter = ${scene.air.scatter}.x;
+			air.emissivity = ${scene.air.emissivity};
 			Material current = air;
 	
 			for (int bounce = 1; bounce <= bounces; bounce++) {
