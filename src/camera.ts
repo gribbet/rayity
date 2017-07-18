@@ -36,7 +36,7 @@ export function mouseCamera(values?: {
 	values.target = values.target || value(0, 0, 0);
 	return camera({
 		target: values.target,
-		eye: `${values.target} + ${values.distance || value(1)}.x * spherical(mouse * vec2(PI, 0.5 * PI) + vec2(0, 0.5 * PI))`,
+		eye: `${values.target} + ${values.distance || value(1)}.x * spherical(mouse * vec2(PI, 0.5 * PI) + vec2(0.5 * PI, 0.25 * PI))`,
 		up: values.up,
 		fieldOfView: values.fieldOfView,
 		aperture: values.aperture
