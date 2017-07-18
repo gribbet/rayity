@@ -27,7 +27,7 @@ export function material(values?: {
 	}, values || {});
 }
 
-export function spotlightMaterial(options: {
+export function spotlight(options: {
 	direction?: Expression,
 	color?: Expression,
 	spread?: Expression,

@@ -1,5 +1,5 @@
-import {Material} from "./material";
-import {Shape} from "./shape";
+import { Material, material } from "./material";
+import { Shape, unitSphere } from "./shape";
 
 export type Model = {
 	id: number,
@@ -9,13 +9,13 @@ export type Model = {
 
 let id = 1;
 
-export function model(
+export function model(values?: {
 	shape: Shape,
-	material: Material) {
-
-	return {
+	material: Material
+}) {
+	return Object.assign({
 		id: id++,
-		shape: shape,
-		material: material
-	};
+		shape: unitSphere(),
+		material: material({})
+	}, values || {});
 }
