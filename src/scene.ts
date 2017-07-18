@@ -1,5 +1,5 @@
 import { Model } from "./model";
-import { Camera, mouseCamera } from "./camera";
+import { Camera, orbit } from "./camera";
 import { Material, material } from "./material";
 import { value } from "./expression";
 
@@ -16,7 +16,7 @@ export function scene(values?: {
 }) {
 	return Object.assign({
 		models: [],
-		camera: mouseCamera(),
+		camera: orbit(),
 		air: material({
 			refraction: value(1)
 		})
