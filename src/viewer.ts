@@ -10,7 +10,8 @@ export function createViewer(
 		epsilon?: number,
 		steps?: number,
 		bounces?: number,
-		iterations?: number
+		iterations?: number,
+		memory?: number
 	}) {
 
 	const options = Object.assign({

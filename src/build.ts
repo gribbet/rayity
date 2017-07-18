@@ -110,7 +110,8 @@ export function build(
 		epsilon: number,
 		steps: number,
 		bounces: number
-		iterations: number
+		iterations: number,
+		memory: number
 	}): Code {
 	const code = `
 	precision highp float;
@@ -291,6 +292,8 @@ export function build(
 		
 		if (clicked) 
 			original *= 0.5;
+
+		original *= ${options.memory}; 
 			
 		gl_FragColor = original + vec4(total, iterations);
 
