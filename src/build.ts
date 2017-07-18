@@ -149,7 +149,7 @@ export function build(
 	Material calculateMaterial(int object, vec3 position, vec3 normal, vec3 direction);
 
 	vec2 random(int seed) {
-		vec2 s = uv * (1.0 + time + float(seed));
+		vec2 s = (uv + vec2(1, 1)) * (1.0 + time + float(seed));
 		return vec2(
 			fract(sin(dot(s.xy, vec2(12.9898, 78.233))) * 43758.5453),
 			fract(cos(dot(s.xy, vec2(4.898, 7.23))) * 23421.631));
@@ -205,10 +205,13 @@ export function build(
 			vec3 direction = normalize(to - from);
 	
 			vec3 luminance = vec3(1);
+
 			Material air;
 			air.refraction = ${scene.air.refraction}.x;
 			air.scatter = ${scene.air.scatter}.x;
 			air.emissivity = ${scene.air.emissivity};
+			air.color = ${scene.air.color};
+
 			Material current = air;
 	
 			for (int bounce = 1; bounce <= bounces; bounce++) {
