@@ -30,13 +30,16 @@ function buildModel(model: Model): Code {
 		}
 		
 		vec3 normal${model.id}(vec3 p) {
-			return normalize(vec3(
-				distance${model.id}(p + vec3(epsilon, 0, 0)) -
-				distance${model.id}(p - vec3(epsilon, 0, 0)),
-				distance${model.id}(p + vec3(0, epsilon, 0)) -
-				distance${model.id}(p - vec3(0, epsilon, 0)),
-				distance${model.id}(p + vec3(0, 0, epsilon)) -
-				distance${model.id}(p - vec3(0, 0, epsilon))));
+			const vec3 a = vec3( 1, 1, 1) / sqrt(3.0);
+			const vec3 b = vec3( 1,-1,-1) / sqrt(3.0);
+			const vec3 c = vec3(-1, 1,-1) / sqrt(3.0);
+			const vec3 d = vec3(-1,-1, 1) / sqrt(3.0);
+			float z = distance${model.id}(p);
+			return normalize(
+				a * (distance${model.id}(p + a * epsilon) - z) + 
+				b * (distance${model.id}(p + b * epsilon) - z) +
+				c * (distance${model.id}(p + c * epsilon) - z) +
+				d * (distance${model.id}(p + d * epsilon) - z));
 		}
 		
 		Material material${model.id}(vec3 p, vec3 n, vec3 d) {
