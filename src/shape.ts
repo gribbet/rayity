@@ -155,12 +155,6 @@ export function expand(k: Expression, a: Shape) {
 		[a]);
 }
 
-export function offset(k: Expression, a: Shape) {
-	return shape(`
-		return ${a.call(`p - ${k}`)};`,
-		[a]);
-}
-
 export function twistX(x: Expression, a: Shape) {
 	return rotateZ(`vec3(p.x * ${x}.x)`, a);
 }
