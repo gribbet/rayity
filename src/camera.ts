@@ -38,7 +38,7 @@ export function orbit(values?: {
 	values.offset = values.offset || value(0, 0);
 	return camera({
 		target: values.target,
-		eye: `${values.target} + ${values.distance || value(1)}.x * spherical((mouse + ${values.offset}) * vec2(PI, 0.5 * PI) + vec2(0.5 * PI, 0.25 * PI))`,
+		eye: `${values.target} + ${values.distance || value(1)}.x * spherical((mouse + ${values.offset}.xy) * vec2(PI, 0.5 * PI) + vec2(0.5 * PI, 0.25 * PI))`,
 		up: values.up,
 		fieldOfView: values.fieldOfView,
 		aperture: values.aperture

@@ -10,8 +10,8 @@ export type Model = {
 let id = 1;
 
 export function model(values?: {
-	shape: Shape,
-	material: Material
+	shape?: Shape,
+	material?: Material
 }) {
 	return Object.assign({
 		id: id++,
