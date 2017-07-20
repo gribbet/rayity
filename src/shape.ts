@@ -22,29 +22,63 @@ function shape(
 }
 
 export function unitSphere(): Shape {
-	return shape(`return length(p) - 1.0;`);
+	return shape(`return length(p) - 0.5;`);
 }
 
-export function unitBox(): Shape {
-	return shape(`
-		vec3 d = abs(p) - vec3(1, 1, 1);
-		return min(max(d.x, max(d.y, d.z)), 0.0) + length(max(d, 0.0));`);
+function all() {
+	return shape(`return -MAX_VALUE;`);
 }
 
-export function unitTetrahedon(): Shape {
-	return shape(`
-		return (-1.0 + max(
-				max(-p.x - p.y - p.z, p.x + p.y - p.z), 
-				max(-p.x + p.y + p.z, p.x - p.y + p.z)))/sqrt(3.0);
-	`);
+function unitShape(normals: Expression[]) {
+	return normals.reduce((s, n) =>
+		intersection(s,
+			plane(n, value(-0.5))),
+		all());
+}
 
+export function unitTetrahedron() {
+	let l = Math.sqrt(3);
+	return unitShape([
+		value(-1 / l, -1 / l, -1 / l),
+		value(-1 / l, 1 / l, 1 / l),
+		value(1 / l, -1 / l, 1 / l),
+		value(1 / l, 1 / l, -1 / l),
+	]);
+}
+
+export function unitCube() {
+	return unitShape([
+		value(1, 0, 0),
+		value(-1, 0, 0),
+		value(0, 1, 0),
+		value(0, -1, 0),
+		value(0, 0, 1),
+		value(0, 0, -1)
+	]);
+}
+
+export function unitDodecahedron() {
+	let phi = 0.5 * (1 + Math.sqrt(5));
+	let l = Math.sqrt(phi * phi + 1);
+	return unitShape([
+		value(phi / l, 1 / l, 0),
+		value(phi / l, -1 / l, 0),
+		value(0, phi / l, 1 / l),
+		value(0, phi / l, -1 / l),
+		value(1 / l, 0, phi / l),
+		value(-1 / l, 0, phi / l),
+		value(-phi / l, 1 / l, 0),
+		value(-phi / l, -1 / l, 0),
+		value(0, -phi / l, 1 / l),
+		value(0, -phi / l, -1 / l),
+		value(1 / l, 0, -phi / l),
+		value(-1 / l, 0, -phi / l)
+	]);
 }
 
 export function unitCylinder(): Shape {
 	return shape(`return length(p.xz) - 1.0;`);
 }
-
-
 
 export function torus(): Shape {
 	return shape(`
@@ -128,7 +162,7 @@ export function twistZ(x: Expression, a: Shape) {
 export function wrapX(a: Shape) {
 	return shape(`
 		float q = length(p.yz);
-		return ${a.call("vec3(p.x, q, asin(p.z / q))")};`,
+		return ${a.call(`vec3(p.x, q, asin(p.z / q))`)};`,
 		[a]);
 }
 
@@ -186,18 +220,18 @@ export function mirror(n: Expression, a: Shape) {
 		[a]);
 }
 
-export function sierpinski(iterations: number = 5, a: Shape = unitTetrahedon()) {
+export function sierpinski(iterations: number = 5, a: Shape = unitTetrahedron()) {
 	return shape(`
 		const vec3 n1 = normalize(vec3(1, 1, 0));
+		const vec3 n3 = normalize(vec3(0, 1, 1));		
 		const vec3 n2 = normalize(vec3(1, 0, 1));
-		const vec3 n3 = normalize(vec3(0, 1, 1));
 		for(int i = 1; i <= ${iterations}; i++) {
 			p -= 2.0 * min(0.0, dot(p, n1)) * n1;
 			p -= 2.0 * min(0.0, dot(p, n2)) * n2;
 			p -= 2.0 * min(0.0, dot(p, n3)) * n3;
-			p = p * 2.0 - 1.0;
+			p = p * 2.0 - 0.5 * sqrt(3.0);
 		} 
-		return ${(a.call("p"))} * pow(2.0, -float(${iterations}));
+		return ${a.call("p")} * pow(2.0, -float(${iterations}));
     `, [a]);
 }
 
