@@ -56,7 +56,7 @@ export function unitCube() {
 		value(0, 0, -1)
 	]);
 }
- 
+
 export function unitOctohedron() {
 	let l = Math.sqrt(3);
 	return unitShape([
@@ -228,25 +228,23 @@ export function rotate(axis: Expression, x: Expression, a: Shape) {
 
 export function mirror(n: Expression, a: Shape) {
 	return shape(`
-		vec3 n = normalize(${n});
-		p -= 2.0 * min(0.0, dot(p, n)) * n;
+		p -= 2.0 * min(0.0, dot(p, ${n})) * ${n};
 		return ${a.call(`p`)};`,
 		[a]);
 }
 
 export function sierpinski(iterations: number = 5, a: Shape = unitTetrahedron()) {
-	return shape(`
-		const vec3 n1 = normalize(vec3(1, 1, 0));
-		const vec3 n3 = normalize(vec3(0, 1, 1));		
-		const vec3 n2 = normalize(vec3(1, 0, 1));
-		for(int i = 1; i <= ${iterations}; i++) {
-			p -= 2.0 * min(0.0, dot(p, n1)) * n1;
-			p -= 2.0 * min(0.0, dot(p, n2)) * n2;
-			p -= 2.0 * min(0.0, dot(p, n3)) * n3;
-			p = p * 2.0 - 0.5 * sqrt(3.0);
-		} 
-		return ${a.call("p")} * pow(2.0, -float(${iterations}));
-    `, [a]);
+	let l = Math.sqrt(2);
+	let shape = a;
+	return Array(iterations)
+		.fill(0)
+		.reduce((shape, i) =>
+			mirror(value(1 / l, 1 / l, 0),
+				mirror(value(0, 1 / l, 1 / l),
+					mirror(value(1 / l, 0, 1 / l),
+						scale(value(0.5),
+							translate(value(0.5 * Math.sqrt(3)),
+								shape))))), a);
 }
 
 export function mandelbulb(iterations: number = 5) {
