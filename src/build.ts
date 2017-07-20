@@ -241,10 +241,8 @@ export function build(
 						break;
 				}
 
-				if (closest.object == 0) {
-					total += luminance;
+				if (closest.object == 0)
 					break;
-				}
 	
 				if (distance == scatter) {
 					from = position;
@@ -270,7 +268,7 @@ export function build(
 				normal = calculateSample(normal, material.smoothness, noise);
 				
 				if (noise.y < material.transmittance) {
-					float eta = current.refraction / material.refraction;
+					float eta = air.refraction / material.refraction;
 					if (backface)
 						eta = 1.0 / eta;
 				
