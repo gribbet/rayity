@@ -25,7 +25,7 @@ export function unitSphere(): Shape {
 	return shape(`return length(p) - 0.5;`);
 }
 
-function all() {
+function unit() {
 	return shape(`return -MAX_VALUE;`);
 }
 
@@ -33,7 +33,7 @@ function unitShape(normals: Expression[]) {
 	return normals.reduce((s, n) =>
 		intersection(s,
 			plane(n, value(-0.5))),
-		all());
+		unit());
 }
 
 export function unitTetrahedron() {
@@ -56,6 +56,20 @@ export function unitCube() {
 		value(0, 0, -1)
 	]);
 }
+ 
+export function unitOctohedron() {
+	let l = Math.sqrt(3);
+	return unitShape([
+		value(1 / l, 1 / l, 1 / l),
+		value(1 / l, 1 / l, -1 / l),
+		value(1 / l, -1 / l, 1 / l),
+		value(1 / l, -1 / l, -1 / l),
+		value(-1 / l, 1 / l, 1 / l),
+		value(-1 / l, 1 / l, -1 / l),
+		value(-1 / l, -1 / l, 1 / l),
+		value(-1 / l, -1 / l, -1 / l),
+	]);
+}
 
 export function unitDodecahedron() {
 	let phi = 0.5 * (1 + Math.sqrt(5));
@@ -76,7 +90,7 @@ export function unitDodecahedron() {
 	]);
 }
 
-export function unitCylinder(): Shape {
+export function cylinder(): Shape {
 	return shape(`return length(p.xz) - 1.0;`);
 }
 
