@@ -91,12 +91,12 @@ export function unitDodecahedron() {
 }
 
 export function cylinder(): Shape {
-	return shape(`return length(p.xz) - 1.0;`);
+	return shape(`return length(p.xz) - 0.5;`);
 }
 
 export function torus(): Shape {
 	return shape(`
-		vec2 q = vec2(length(p.xz) - 1.0, p.y);
+		vec2 q = vec2(length(p.xz) - 0.5, p.y);
   		return length(q) - 0.1;`);
 }
 
