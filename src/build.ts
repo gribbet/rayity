@@ -1,7 +1,8 @@
-import { Shape } from "./shape";
-import { Model } from "./model";
-import { Scene } from "./scene";
-import { Code, variable } from "./expression";
+import { Code, variable } from './expression';
+import { Model } from './model';
+import { Options } from './options';
+import { Scene } from './scene';
+import { Shape } from './shape';
 
 function buildShape(shape: Shape) {
 	return dependencies(shape)
@@ -132,16 +133,7 @@ function buildScene(
 
 export function build(
 	scene: Scene,
-	options: {
-		width: number,
-		height: number,
-		epsilon: number,
-		steps: number,
-		bounces: number
-		iterations: number,
-		memory: number,
-		cheapNormals: boolean
-	}): Code {
+	options: Options): Code {
 	const code = `
 	precision highp float;
 

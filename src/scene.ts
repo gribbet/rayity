@@ -1,7 +1,7 @@
-import { Model } from "./model";
-import { Camera, orbit } from "./camera";
-import { Material, material } from "./material";
-import { value } from "./expression";
+import { Camera, orbit } from './camera';
+import { value } from './expression';
+import { Material, material } from './material';
+import { Model } from './model';
 
 export type Scene = {
 	models: Model[];

@@ -1,5 +1,5 @@
-import { Material, material } from "./material";
-import { Shape, unitSphere } from "./shape";
+import { Material, material } from './material';
+import { Shape, unitSphere } from './shape';
 
 export type Model = {
 	id: number,

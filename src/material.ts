@@ -1,4 +1,4 @@
-import { Expression, value } from "./expression";
+import { Expression, value } from './expression';
 
 export type Material = {
 	transmittance: Expression,

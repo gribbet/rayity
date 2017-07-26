@@ -1,4 +1,4 @@
-import { Code, Expression, value } from "./expression";
+import { Code, Expression, value } from './expression';
 
 export type Shape = {
 	readonly id: number,

@@ -1,6 +1,6 @@
-import { build } from "./build";
-import { Scene } from "./scene";
-import { Options } from "./options";
+import { build } from './build';
+import { Options } from './options';
+import { Scene } from './scene';
 
 export type Renderer = {
 	render: () => void;
