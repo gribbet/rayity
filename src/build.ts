@@ -251,7 +251,7 @@ export function build(
 					if (closest.distance < epsilon)
 						break;
 	
-					distance = distance + closest.distance * 0.9;
+					distance = distance + closest.distance;
 					distance = min(distance, scatter);
 					position = from + direction * distance;
 
@@ -305,7 +305,7 @@ export function build(
 				}
 
 				luminance *= material.color;				
-				from = position + epsilon * normal;
+				from = position + 5.0 * epsilon * normal;
 				direction = reflect(direction, normal);
 			}
 		}
