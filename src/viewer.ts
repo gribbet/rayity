@@ -1,23 +1,13 @@
-import {Scene} from "./scene";
-import {createRenderer} from "./renderer";
+import { Options, options as _options } from './options';
+import { createRenderer } from './renderer';
+import { Scene } from './scene';
 
 export function createViewer(
 	element: HTMLElement,
 	scene: Scene,
-	options_?: {
-		width?: number,
-		height?: number,
-		epsilon?: number,
-		steps?: number,
-		bounces?: number,
-		iterations?: number,
-		memory?: number
-	}) {
+	options?: Options) {
 
-	const options = Object.assign({
-		width: 512,
-		height: 512,
-	}, options_ || {});
+	options = options || _options();
 
 	const canvas = document.createElement("canvas");
 	canvas.width = options.width;
@@ -33,7 +23,7 @@ export function createViewer(
 	const variables = {
 		time: 0,
 		clicked: false,
-		mouse: {x: 0.0, y: 0.0}
+		mouse: { x: 0.0, y: 0.0 }
 	};
 
 	const renderer = createRenderer(gl, scene, options, variables);

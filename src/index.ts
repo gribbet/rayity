@@ -5,3 +5,4 @@ export * from "./scene";
 export * from "./shape";
 export * from "./viewer";
 export * from "./camera";
+export * from "./options";

@@ -1,5 +1,6 @@
-import {build} from "./build";
-import {Scene} from "./scene";
+import { build } from "./build";
+import { Scene } from "./scene";
+import { Options } from "./options";
 
 export type Renderer = {
 	render: () => void;
@@ -8,16 +9,8 @@ export type Renderer = {
 export function createRenderer(
 	gl: WebGLRenderingContext,
 	scene: Scene,
-	options_?: {
-		width?: number,
-		height?: number,
-		epsilon?: number,
-		steps?: number,
-		bounces?: number,
-		iterations?: number,
-		memory?: number
-	},
-	variables_?: {
+	options: Options,
+	variables?: {
 		time: number,
 		clicked: boolean,
 		mouse: {
@@ -25,15 +18,6 @@ export function createRenderer(
 			y: number
 		}
 	}) {
-	const options = Object.assign({
-		width: 512,
-		height: 512,
-		epsilon: 0.001,
-		steps: 100,
-		bounces: 5,
-		iterations: 1,
-		memory: 1
-	}, options_ || {});
 
 	if (!gl.getExtension("OES_texture_float"))
 		throw "No float texture support";
@@ -122,11 +106,11 @@ export function createRenderer(
 			const read = textures[odd ? 0 : 1];
 			const write = textures[odd ? 1 : 0];
 
-			const variables = Object.assign({
+			variables = Object.assign({
 				time: 0,
 				clicked: false,
-				mouse: {x: 0, y: 0}
-			}, variables_ || {});
+				mouse: { x: 0, y: 0 }
+			}, variables || {});
 
 			gl.useProgram(program);
 			gl.bindTexture(gl.TEXTURE_2D, read);
