@@ -106,7 +106,7 @@ export function createRenderer(
 			const read = textures[odd ? 0 : 1];
 			const write = textures[odd ? 1 : 0];
 
-			variables = Object.assign({
+			const variables_ = Object.assign({
 				time: 0,
 				clicked: false,
 				mouse: { x: 0, y: 0 }
