@@ -21,14 +21,31 @@ function dependencies(shape: Shape): Shape[] {
 		.filter((x, i) => all.indexOf(x) == i);
 }
 
-function buildModel(model: Model): Code {
-	return `
+function buildModel(
+	model: Model,
+	options: {
+		cheapNormals: boolean
+	}): Code {
+	let code = `
 		${buildShape(model.shape)}
 	
 		float distance${model.id}(vec3 p) {
 			return ${model.shape.call(variable("p"))};
 		}
 		
+		Material material${model.id}(vec3 p, vec3 n, vec3 d) {
+			Material m;
+			m.transmittance = ${model.material.transmittance}.x;
+			m.smoothness = ${model.material.smoothness}.x;
+			m.refraction = ${model.material.refraction}.x;
+			m.scatter = ${model.material.scatter}.x;
+			m.color = ${model.material.color};
+			m.emissivity = ${model.material.emissivity};
+			return m;
+		}
+		`;
+	if (options.cheapNormals)
+		code += `
 		vec3 normal${model.id}(vec3 p) {
 			const vec3 a = vec3( 1, 1, 1) / sqrt(3.0);
 			const vec3 b = vec3( 1,-1,-1) / sqrt(3.0);
@@ -41,22 +58,30 @@ function buildModel(model: Model): Code {
 				c * (distance${model.id}(p + c * epsilon) - z) +
 				d * (distance${model.id}(p + d * epsilon) - z));
 		}
-		
-		Material material${model.id}(vec3 p, vec3 n, vec3 d) {
-			Material m;
-			m.transmittance = ${model.material.transmittance}.x;
-			m.smoothness = ${model.material.smoothness}.x;
-			m.refraction = ${model.material.refraction}.x;
-			m.scatter = ${model.material.scatter}.x;
-			m.color = ${model.material.color};
-			m.emissivity = ${model.material.emissivity};
-			return m;
-		}`;
+		`;
+	else
+		code += `
+		vec3 normal${model.id}(vec3 p) {
+			return normalize(vec3(
+ 				distance${model.id}(p + vec3(epsilon, 0, 0)) -
+ 				distance${model.id}(p - vec3(epsilon, 0, 0)),
+ 				distance${model.id}(p + vec3(0, epsilon, 0)) -
+ 				distance${model.id}(p - vec3(0, epsilon, 0)),
+				distance${model.id}(p + vec3(0, 0, epsilon)) -
+ 				distance${model.id}(p - vec3(0, 0, epsilon))));
+		}
+		`;
+
+	return code;
 }
 
-function buildScene(scene: Scene): Code {
+function buildScene(
+	scene: Scene,
+	options: {
+		cheapNormals: boolean
+	}): Code {
 	return scene.models
-		.map(_ => buildModel(_))
+		.map(_ => buildModel(_, options))
 		.reduce((a, b) => a + b, "") + `
 		
 		Closest calculateClosest(vec3 position) {
@@ -114,7 +139,8 @@ export function build(
 		steps: number,
 		bounces: number
 		iterations: number,
-		memory: number
+		memory: number,
+		cheapNormals: boolean
 	}): Code {
 	const code = `
 	precision highp float;
@@ -234,7 +260,7 @@ export function build(
 						break;
 	
 					distance = distance + closest.distance * 0.5;
-					distance = min(distance, scatter);					
+					distance = min(distance, scatter);
 					position = from + direction * distance;
 
 					if (distance == scatter)
@@ -301,7 +327,7 @@ export function build(
 			
 		gl_FragColor = original + vec4(total, iterations);
 
-	}` + buildScene(scene);
+	}` + buildScene(scene, options);
 
 	console.log(code);
 
