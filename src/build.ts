@@ -259,7 +259,7 @@ export function build(
 					if (closest.distance < epsilon)
 						break;
 	
-					distance = distance + closest.distance * 0.5;
+					distance = distance + closest.distance * 0.9;
 					distance = min(distance, scatter);
 					position = from + direction * distance;
 
@@ -302,7 +302,7 @@ export function build(
 				
 					vec3 refracted = refract(direction, normal, eta);
 					if (refracted != vec3(0)) {
-						from = position - 2.0 * epsilon * normal;
+						from = position - 5.0 * epsilon * normal;
 						direction = refracted;
 						if (!backface)
 							current = material;
