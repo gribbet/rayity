@@ -14,7 +14,8 @@ export function createRenderer(
 		epsilon?: number,
 		steps?: number,
 		bounces?: number,
-		iterations?: number
+		iterations?: number,
+		memory?: number
 	},
 	variables_?: {
 		time: number,
@@ -30,7 +31,8 @@ export function createRenderer(
 		epsilon: 0.001,
 		steps: 100,
 		bounces: 5,
-		iterations: 1
+		iterations: 1,
+		memory: 1
 	}, options_ || {});
 
 	if (!gl.getExtension("OES_texture_float"))

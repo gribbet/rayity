@@ -323,7 +323,7 @@ export function build(
 		if (clicked) 
 			original *= 0.5;
 
-		original *= ${options.memory}; 
+		original *= ${options.memory.toFixed(10)}; 
 			
 		gl_FragColor = original + vec4(total, iterations);
 
