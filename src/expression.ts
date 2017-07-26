@@ -5,7 +5,7 @@ export function value(
 	x: number = 0,
 	y: number = x,
 	z: number = y): Expression {
-	return `vec3(${x.toPrecision(6)}, ${y.toPrecision(6)}, ${z.toPrecision(6)})`;
+	return `vec3(${x.toPrecision(10)}, ${y.toPrecision(10)}, ${z.toPrecision(10)})`;
 }
 
 export function variable(name: string): Expression {
