@@ -25,6 +25,17 @@ export function unitSphere(): Shape {
 	return shape(`return length(p) - 0.5;`);
 }
 
+export function smoothBox(dimensions: Expression, radius: Expression) {
+	return mirror(value(1, 0, 0),
+		mirror(value(0, 1, 0),
+			mirror(value(0, 0, 1),
+				scale(value(0.5),
+					translate(dimensions,
+						max(
+							scale(radius,
+								unitSphere())))))));
+}
+
 function unit() {
 	return shape(`return -MAX_VALUE;`);
 }
@@ -111,6 +122,11 @@ export function translate(x: Expression, a: Shape) {
 
 export function scale(x: Expression, a: Shape) {
 	return shape(`return ${a.call(`p / ${x}.x`)} * ${x}.x;`,
+		[a]);
+}
+
+export function max(a: Shape) {
+	return shape(`return ${a.call(`max(p, 0.0)`)};`,
 		[a]);
 }
 
@@ -238,7 +254,7 @@ export function sierpinski(iterations: number = 5, a: Shape = unitTetrahedron())
 					mirror(value(1 / l, 0, 1 / l),
 						scale(value(0.5),
 							translate(value(0.5 * Math.sqrt(3)),
-								shape))))), a);
+								shape))))));
 }
 
 export function mandelbulb(iterations: number = 5) {
