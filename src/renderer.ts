@@ -116,9 +116,9 @@ export function createRenderer(
 			gl.bindTexture(gl.TEXTURE_2D, read);
 			gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
 			gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, write, 0);
-			gl.uniform1f(gl.getUniformLocation(program, "time"), variables.time || 0);
-			gl.uniform2f(gl.getUniformLocation(program, "mouse"), variables.mouse.x, variables.mouse.y);
-			gl.uniform1i(gl.getUniformLocation(program, "clicked"), variables.clicked ? 1 : 0);
+			gl.uniform1f(gl.getUniformLocation(program, "time"), variables_.time);
+			gl.uniform2f(gl.getUniformLocation(program, "mouse"), variables_.mouse.x, variables_.mouse.y);
+			gl.uniform1i(gl.getUniformLocation(program, "clicked"), variables_.clicked ? 1 : 0);
 			gl.drawElements(gl.TRIANGLES, indices.length, gl.UNSIGNED_SHORT, 0);
 
 			gl.useProgram(renderProgram);
