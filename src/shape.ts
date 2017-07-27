@@ -1,7 +1,7 @@
 import { Code, Expression, value } from './expression';
 
 export type Shape = {
-	readonly id: number,
+	readonly id: string,
 	readonly body: Code,
 	readonly dependencies: Shape[],
 	readonly call: (_: Expression) => Expression,
@@ -12,13 +12,26 @@ function shape(
 	body: string,
 	dependencies: Shape[] = []) {
 
-	let id = lastId++;
+	let id = generateId(body);
 	return {
+		id: id,
 		body: body,
 		dependencies: dependencies,
-		id: id,
 		call: (x: Expression) => `shape${id}(${x})`
 	};
+}
+
+function generateId(body: string): string {
+	return hash(body).toString(16);
+}
+
+function hash(x: string): number {
+	let hash = 5381;
+
+	for (let i = 0; i < x.length; i++)
+		hash = (hash * 33) ^ x.charCodeAt(i);
+
+	return hash >>> 0;
 }
 
 export function unitSphere(): Shape {
@@ -188,7 +201,7 @@ export function wrapX(a: Shape): Shape {
 	return shape(`
 	float q = length(p.yz);
 	return ${a.call(`vec3(p.x, q, asin(p.z / q))`)};`,
-	[a]);
+		[a]);
 }
 
 export function rotateX(x: Expression, a: Shape): Shape {
@@ -257,7 +270,7 @@ export function sierpinski(iterations: number = 5, a: Shape = unitTetrahedron())
 								shape))))), a);
 }
 
-export function test(iterations: number = 5, a: Shape = intersection(
+export function test(iterations: number = 7, a: Shape = intersection(
 	scale(value(0.2),
 		cylinder()),
 	unitSphere())): Shape {

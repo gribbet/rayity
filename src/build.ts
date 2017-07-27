@@ -4,24 +4,28 @@ import { Options } from './options';
 import { Scene } from './scene';
 import { Shape } from './shape';
 
-function buildShape(shape: Shape) {
-	return dependencies(shape)
+function buildShapes(shapes: Shape[]) {
+	return uniqueShapes(shapes)
 		.map(shape => `
 
 float shape${shape.id}(vec3 p) {
 	${shape.body}
 }`)
-
 		.reduce((a, b) => a + "\n" + b, "");
 }
 
+function uniqueShapes(shapes: Shape[]): Shape[] {
+	let all = shapes
+		.map(_ => dependencies(_))
+		.reduce((a, b) => a.concat(b), [])
+	return all.filter((x, i) => all.findIndex(_ => _.id === x.id) === i);
+}
+
 function dependencies(shape: Shape): Shape[] {
-	let all: Shape[] = shape.dependencies
+	return shape.dependencies
 		.map(_ => dependencies(_))
 		.reduce((a, b) => a.concat(b), [])
 		.concat(shape);
-	return all
-		.filter((x, i) => all.indexOf(x) == i);
 }
 
 function buildModel(
@@ -30,8 +34,6 @@ function buildModel(
 		cheapNormals: boolean
 	}): Code {
 	let code = `
-
-${buildShape(model.shape)}
 	
 float distance${model.id}(vec3 p) {
 	return ${model.shape.call(variable("p"))};
@@ -85,9 +87,10 @@ function buildScene(
 	options: {
 		cheapNormals: boolean
 	}): Code {
-	return scene.models
-		.map(_ => buildModel(_, options))
-		.reduce((a, b) => a + b, "") + `
+	return buildShapes(scene.models.map(_ => _.shape)) +
+		scene.models
+			.map(_ => buildModel(_, options))
+			.reduce((a, b) => a + b, "") + `
 		
 Closest calculateClosest(vec3 position) {
 	Closest closest;
