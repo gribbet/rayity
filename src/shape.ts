@@ -29,11 +29,10 @@ export function smoothBox(dimensions: Expression, radius: Expression) {
 	return mirror(value(1, 0, 0),
 		mirror(value(0, 1, 0),
 			mirror(value(0, 0, 1),
-				scale(value(0.5),
-					translate(dimensions,
-						max(
-							scale(radius,
-								unitSphere())))))));
+				translate(`0.5 * (${dimensions} - ${radius})`,
+					max(
+						scale(radius,
+							unitSphere()))))));
 }
 
 function unit() {
