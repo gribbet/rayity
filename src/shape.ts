@@ -228,6 +228,13 @@ export function rotate(axis: Expression, x: Expression, a: Shape): Shape {
 	});
 }
 
+export function wrapX(a: Shape): Shape {
+	return shape(p => {
+		let c = expression(`length(p.yz)`);
+		return a.call(expression(`${p}.x, ${c}.x, asin(${p}.z / ${c}.x)`, [c]));
+	});
+}
+
 export function mirror(n: Expression, a: Shape): Shape {
 	return shape(p =>
 		a.call(expression(`${p} - 2.0 * min(0.0, dot(${p}, ${n})) * ${n}`, [n])));
