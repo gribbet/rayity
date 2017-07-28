@@ -3,7 +3,7 @@ import { Options } from './options';
 import { Scene } from './scene';
 
 export type Renderer = {
-	render: () => void;
+	readonly render: () => void;
 }
 
 export function createRenderer(

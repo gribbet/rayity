@@ -1,10 +1,10 @@
 import { Material, material } from './material';
-import { Shape, unitSphere } from './shape';
+import { Shape, sphere } from './shape';
 
 export type Model = {
-	id: number,
-	shape: Shape,
-	material: Material
+	readonly id: number,
+	readonly shape: Shape,
+	readonly material: Material
 }
 
 let id = 1;
@@ -12,10 +12,10 @@ let id = 1;
 export function model(values?: {
 	shape?: Shape,
 	material?: Material
-}) {
+}): Model {
 	return Object.assign({
 		id: id++,
-		shape: unitSphere(),
+		shape: sphere(),
 		material: material({})
 	}, values || {});
 }

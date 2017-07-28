@@ -1,31 +1,24 @@
-import { Code, variable } from './expression';
+import { Code, Expression, expression, variable } from './expression';
 import { Model } from './model';
 import { Options } from './options';
 import { Scene } from './scene';
-import { Shape } from './shape';
 
-function buildShapes(shapes: Shape[]) {
-	return uniqueShapes(shapes)
-		.map(shape => `
-
-float shape${shape.id}(vec3 p) {
-	${shape.body}
-}`)
+function buildExpression(expression: Expression) {
+	return dependencies(expression)
+		.map(expression => `	vec3 ${expression} = vec3(${expression.body});`)
 		.reduce((a, b) => a + "\n" + b, "");
 }
 
-function uniqueShapes(shapes: Shape[]): Shape[] {
-	let all = shapes
-		.map(_ => dependencies(_))
-		.reduce((a, b) => a.concat(b), [])
-	return all.filter((x, i) => all.findIndex(_ => _.id === x.id) === i);
+function buildExpressions(expressions: Expression[]) {
+	return buildExpression(expression(`vec3(0)`, expressions));
 }
 
-function dependencies(shape: Shape): Shape[] {
-	return shape.dependencies
+function dependencies(expression: Expression): Expression[] {
+	let all = expression.dependencies
 		.map(_ => dependencies(_))
 		.reduce((a, b) => a.concat(b), [])
-		.concat(shape);
+		.concat(expression);
+	return all.filter((x, i) => all.findIndex(_ => _.id === x.id) === i);
 }
 
 function buildModel(
@@ -33,14 +26,23 @@ function buildModel(
 	options: {
 		cheapNormals: boolean
 	}): Code {
+	let distance = model.shape.call(variable("p"));
 	let code = `
 	
 float distance${model.id}(vec3 p) {
-	return ${model.shape.call(variable("p"))};
+	${buildExpression(distance)}
+	return ${distance}.x;
 }
 
 Material material${model.id}(vec3 p, vec3 n, vec3 d) {
 	Material m;
+	${buildExpressions([
+			model.material.transmittance,
+			model.material.smoothness,
+			model.material.refraction,
+			model.material.scatter,
+			model.material.color,
+			model.material.emissivity])}
 	m.transmittance = ${model.material.transmittance}.x;
 	m.smoothness = ${model.material.smoothness}.x;
 	m.refraction = ${model.material.refraction}.x;
@@ -87,10 +89,9 @@ function buildScene(
 	options: {
 		cheapNormals: boolean
 	}): Code {
-	return buildShapes(scene.models.map(_ => _.shape)) +
-		scene.models
-			.map(_ => buildModel(_, options))
-			.reduce((a, b) => a + b, "") + `
+	return scene.models
+		.map(_ => buildModel(_, options))
+		.reduce((a, b) => a + b, "") + `
 		
 Closest calculateClosest(vec3 position) {
 	Closest closest;
@@ -209,6 +210,12 @@ vec3 spherical(vec2 angle) {
 }
 
 void main() {
+	${buildExpressions([
+			scene.camera.eye,
+			scene.camera.target,
+			scene.camera.up,
+			scene.camera.fieldOfView,
+			scene.camera.aperture])}
 	vec3 eye = ${scene.camera.eye};
 	vec3 target = ${scene.camera.target};
 	vec3 up = ${scene.camera.up};
@@ -236,6 +243,11 @@ void main() {
 		vec3 luminance = vec3(1);
 
 		Material air;
+		${buildExpressions([
+			scene.air.refraction,
+			scene.air.scatter,
+			scene.air.emissivity,
+			scene.air.color])}
 		air.refraction = ${scene.air.refraction}.x;
 		air.scatter = ${scene.air.scatter}.x;
 		air.emissivity = ${scene.air.emissivity};
@@ -258,7 +270,7 @@ void main() {
 				if (closest.distance < epsilon)
 					break;
 
-				distance = distance + closest.distance;
+				distance = distance + closest.distance * 0.9;
 				distance = min(distance, scatter);
 				position = from + direction * distance;
 

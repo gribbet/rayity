@@ -1,12 +1,12 @@
 export type Options = {
-    width: number,
-    height: number,
-    epsilon: number,
-    steps: number,
-    bounces: number,
-    iterations: number,
-    memory: number,
-    cheapNormals: boolean
+    readonly width: number,
+    readonly height: number,
+    readonly epsilon: number,
+    readonly steps: number,
+    readonly bounces: number,
+    readonly iterations: number,
+    readonly memory: number,
+    readonly cheapNormals: boolean
 }
 
 export function options(values?: {

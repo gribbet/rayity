@@ -1,12 +1,12 @@
-import { Expression, value } from './expression';
+import { Expression, expression, value } from './expression';
 
 export type Material = {
-	transmittance: Expression,
-	smoothness: Expression,
-	refraction: Expression,
-	scatter: Expression,
-	color: Expression,
-	emissivity: Expression
+	readonly transmittance: Expression,
+	readonly smoothness: Expression,
+	readonly refraction: Expression,
+	readonly scatter: Expression,
+	readonly color: Expression,
+	readonly emissivity: Expression
 }
 
 export function material(values?: {
@@ -16,12 +16,12 @@ export function material(values?: {
 	scatter?: Expression,
 	color?: Expression,
 	emissivity?: Expression
-}) {
+}): Material {
 	return Object.assign({
 		transmittance: value(0),
 		smoothness: value(0),
 		refraction: value(1),
-		scatter: value(1e20), 
+		scatter: value(1e20),
 		color: value(1, 1, 1),
 		emissivity: value(0, 0, 0)
 	}, values || {});
@@ -40,6 +40,8 @@ export function spotlight(options: {
 	let ambient = options.ambient || value(0);
 	return material({
 		color: value(0),
-		emissivity: `${color} / ${spread}.x * pow(dot(normalize(p), normalize(${direction})) * 0.5 + 0.5, 1.0 / ${spread}.x - 1.0) + ${ambient}`
+		emissivity: expression(
+			`${color} / ${spread}.x * pow(dot(normalize(p), normalize(${direction})) * 0.5 + 0.5, 1.0 / ${spread}.x - 1.0) + ${ambient}`,
+			[color, spread, ambient, direction])
 	});
 }

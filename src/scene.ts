@@ -4,16 +4,16 @@ import { Material, material } from './material';
 import { Model } from './model';
 
 export type Scene = {
-	models: Model[];
-	camera: Camera;
-	air: Material;
+	readonly models: Model[];
+	readonly camera: Camera;
+	readonly air: Material;
 }
 
 export function scene(values?: {
 	models?: Model[],
 	camera?: Camera,
 	air?: Material
-}) {
+}): Scene {
 	return Object.assign({
 		models: [],
 		camera: orbit(),
