@@ -180,6 +180,17 @@ export function blend(k: Expression, a: Shape, b: Shape): Shape {
 		[a, b]);
 }
 
+export function blend2(k: Expression, shapes: Shape[]): Shape {
+	console.log("blend");
+	console.log(shapes);
+	return shape(`
+		float k = ${k}.x;
+		return -log(${shapes
+			.map(shape => `exp(-k * ${shape.call(`p`)})`)
+			.reduce((a, b) => a + " + " + b)}) / k;`,
+		shapes);
+}
+
 export function expand(k: Expression, a: Shape): Shape {
 	return shape(`return ${a.call(`p`)} - ${k}.x;`,
 		[a]);
@@ -270,22 +281,25 @@ export function sierpinski(iterations: number = 5, a: Shape = unitTetrahedron())
 								shape))))), a);
 }
 
-export function test(iterations: number = 7, a: Shape = intersection(
-	scale(value(0.2),
-		cylinder()),
-	unitSphere())): Shape {
+export function tree(iterations: number = 4): Shape {
 	let l = Math.sqrt(2);
+	let a = intersection(
+		scale(value(0.2),
+			cylinder()),
+		unitSphere());
+	//let a = smoothBox(value(0.2, 1, 0.2), value(0.1));
 	return Array(iterations)
 		.fill(0)
-		.reduce((shape, i) =>
-			union(
+		.reduce((shape, _, i) =>
+			blend(
+				value(0.05 * Math.pow(0.6, i)),
 				shape,
 				mirror(value(1 / l, 0, 1 / l),
 					mirror(value(1 / l, 0, -1 / l),
-						translate(value(0, 0.5, 0),
-							rotate(value(0, 0, 1), value(-30 / 180 * Math.PI),
-								translate(value(0, 0.5, 0),
-									scale(value(0.8), shape))))))), a);
+						scale(value(0.6),
+							translate(value(0.3, 1.2, 0),
+								rotateZ(value(30 / 180 * Math.PI),
+									shape)))))), a);
 }
 
 export function mandelbulb(iterations: number = 5): Shape {
