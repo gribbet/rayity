@@ -263,19 +263,28 @@ export function sierpinski(iterations: number = 5, a: Shape = tetrahedron()): Sh
 								shape))))), a);
 }
 
-export function tree(iterations: number = 7): Shape {
-	let l = Math.sqrt(2);
-	let a = smoothBox(value(0.2, 1, 0.2), value(0.1));
+export function tree(iterations: number = 8): Shape {
+	let factor = 0.58;
+	let length = 1.2;
+	let width = 0.1;
+	let angle = 50;
+
 	return Array(iterations)
 		.fill(0)
 		.reduce((shape, _, i) =>
 			blend(
-				value(0.05 * Math.pow(0.6, i)),
+				value(0.15 * Math.pow(factor, i)),
 				shape,
-				mirror(value(1 / l, 0, 1 / l),
-					mirror(value(1 / l, 0, -1 / l),
-						scale(value(0.6),
-							translate(value(0.3, 1.2, 0),
-								rotateZ(value(30 / 180 * Math.PI),
-									shape)))))), a);
+				mirror(value(1 / Math.sqrt(2), 0, 1 / Math.sqrt(2)),
+					mirror(value(1 / Math.sqrt(2), 0, -1 / Math.sqrt(2)),
+						translate(
+							value(
+								length * factor / 2 * Math.sin(angle / 180 * Math.PI),
+								length / 2 * (1 + factor / 2 * Math.cos(angle / 180 * Math.PI)),
+								0),
+							scale(value(factor),
+							rotateY(value(0.1),
+								rotateZ(value(angle / 180 * Math.PI),
+									shape))))))),
+		smoothBox(value(width, length, width), value(width / 2)));
 }
