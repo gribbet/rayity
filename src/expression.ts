@@ -15,7 +15,8 @@ export function expression(body: Code): Expression {
 		body: body,
 		dependencies: context,
 		toString: () => {
-			context.push(self);
+			if (context.indexOf(self) === -1)
+				context.push(self);
 			return id;
 		}
 	};

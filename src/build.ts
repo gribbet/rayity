@@ -4,7 +4,7 @@ import { Options } from './options';
 import { Scene } from './scene';
 
 function buildExpression(expression: Expression) {
-	return buildExpressions([expression]);		
+	return buildExpressions([expression]);
 }
 
 function buildExpressions(expressions: Expression[]) {
@@ -15,9 +15,7 @@ function buildExpressions(expressions: Expression[]) {
 
 function dependencies(expression: Expression): Expression[] {
 	return uniqueExpressions(
-		expression.dependencies
-			.map(_ => dependencies(_))
-			.reduce((a, b) => a.concat(b), [])
+		dependencieses(expression.dependencies)
 			.concat(expression));
 }
 
@@ -38,9 +36,7 @@ function buildModel(
 	options: {
 		cheapNormals: boolean
 	}): Code {
-	console.log("A");
 	let distance = model.shape.call(variable("p"));
-	console.log(distance);
 	let code = `
 	
 float distance${model.id}(vec3 p) {
