@@ -105,7 +105,7 @@ export function cylinder(): Shape {
 
 export function torus(): Shape {
 	return shape(p =>
-		expression(`length(vec2(length(${p}.xz) - 0.5, ${p}.y, 0.0)) - 0.1`));
+		expression(`length(vec2(length(${p}.xz) - 0.5, ${p}.y)) - 0.1`));
 }
 
 export function translate(x: Expression, a: Shape): Shape {
@@ -283,8 +283,34 @@ export function tree(iterations: number = 8): Shape {
 								length / 2 * (1 + factor / 2 * Math.cos(angle / 180 * Math.PI)),
 								0),
 							scale(value(factor),
-							rotateY(value(0.1),
-								rotateZ(value(angle / 180 * Math.PI),
-									shape))))))),
+								rotateY(value(0.1),
+									rotateZ(value(angle / 180 * Math.PI),
+										shape))))))),
 		smoothBox(value(width, length, width), value(width / 2)));
+}
+
+export function modulate(
+	x: Expression,
+	a: (index: Expression) => Shape,
+	buffer: Expression = value(0.01)): Shape {
+	return shape(p => { 
+		let offset = expression(`${p} + ${x} * 0.5`, [p, x]);
+		let index = expression(`floor(${offset} / ${x})`, [offset, x]);
+		let center = expression(`${index} * ${x}`, [index, x]);
+		let local = expression(`${p} - ${center}`, [p, center]);
+		let mask = shape(p => {
+			let a = expression(`${buffer} + ${x} * 0.5 - abs(${p})`, [buffer, x, p]);
+			return expression(`min(min(${a}.x, ${a}.y), ${a}.z)`, [a]);
+		});
+		return union(mask, a(index))
+			.call(local);
+	});
+}
+
+export function choose(x: Expression, a: Shape, b: Shape): Shape {
+	return shape(p => {
+		let ad = a.call(p);
+		let bd = b.call(p);
+		return expression(`${x}.x < 0.5 ? ${ad} : ${bd}`, [x, ad, bd]);
+	});
 }

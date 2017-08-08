@@ -42,3 +42,7 @@ export function value(
 export function variable(name: string): Expression {
 	return expression(name);
 }
+
+export function random(x: Expression): Expression {
+	return expression(`fract(sin(dot(${x} + 1000.0, vec3(12.9898, 78.233, 26.724))) * 43758.5453)`, [x]);
+}
