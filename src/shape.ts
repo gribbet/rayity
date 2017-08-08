@@ -6,12 +6,7 @@ export type Shape = {
 
 function shape(call: (position: Expression) => Expression): Shape {
 	return {
-		call: (position: Expression) => {
-			let x = call(position);
-			return expression(
-				x.body,
-				[position].concat(x.dependencies));
-		}
+		call: call
 	};
 }
 
@@ -32,7 +27,7 @@ export function sphere(): Shape {
 
 export function plane(normal: Expression, offset: Expression): Shape {
 	return shape(p =>
-		expression(`dot(${p}, ${normal}) + ${offset}.x`, [normal, offset]));
+		expression(`dot(${p}, ${normal}) + ${offset}.x`));
 }
 
 function unitShape(normals: Expression[]): Shape {
@@ -110,36 +105,36 @@ export function torus(): Shape {
 
 export function translate(x: Expression, a: Shape): Shape {
 	return shape(p =>
-		a.call(expression(`${p} - ${x}`, [x])));
+		a.call(expression(`${p} - ${x}`)));
 }
 
 export function scale(x: Expression, a: Shape): Shape {
 	return shape(p => {
-		let q = a.call(expression(`${p} / ${x}.x`, [x]));
-		return expression(`${q} * ${x}.x`, [q, x]);
+		let q = a.call(expression(`${p} / ${x}.x`));
+		return expression(`${q} * ${x}.x`);
 	});
 }
 
 export function max(a: Shape): Shape {
 	return shape(p =>
-		a.call(expression(`max(${p}, 0.0)`, [p])));
+		a.call(expression(`max(${p}, 0.0)`)));
 }
 
 export function stretch(x: Expression, a: Shape): Shape {
 	return shape(p =>
-		a.call(expression(`${p} / ${x}`, [x])));
+		a.call(expression(`${p} / ${x}`)));
 }
 
 export function repeat(x: Expression, a: Shape): Shape {
 	return shape(p =>
-		a.call(expression(`mod(${p} - ${x} * 0.5, ${x}) - ${x} * 0.5`, [x])));
+		a.call(expression(`mod(${p} - ${x} * 0.5, ${x}) - ${x} * 0.5`)));
 }
 
 export function union(a: Shape, b: Shape): Shape {
 	return shape(p => {
 		let da = a.call(p);
 		let db = b.call(p);
-		return expression(`min(${da}, ${db})`, [da, db])
+		return expression(`min(${da}, ${db})`)
 	});
 }
 
@@ -147,7 +142,7 @@ export function intersection(a: Shape, b: Shape): Shape {
 	return shape(p => {
 		let da = a.call(p);
 		let db = b.call(p);
-		return expression(`max(${da}, ${db})`, [da, db])
+		return expression(`max(${da}, ${db})`)
 	});
 }
 
@@ -155,7 +150,7 @@ export function difference(a: Shape, b: Shape): Shape {
 	return shape(p => {
 		let da = a.call(p);
 		let db = b.call(p);
-		return expression(`max(${da}, -${db})`, [da, db])
+		return expression(`max(${da}, -${db})`)
 	});
 }
 
@@ -163,58 +158,58 @@ export function blend(k: Expression, a: Shape, b: Shape): Shape {
 	return shape(p => {
 		let da = a.call(p);
 		let db = b.call(p);
-		let h = expression(`clamp(0.5 + 0.5 * (${db} - ${da}) / ${k}, 0.0, 1.0)`, [da, db, k]);
-		return expression(`mix(${db}, ${da}, ${h}) - ${k} * ${h} * (1.0 - ${h})`, [da, db, k, h]);
+		let h = expression(`clamp(0.5 + 0.5 * (${db} - ${da}) / ${k}, 0.0, 1.0)`);
+		return expression(`mix(${db}, ${da}, ${h}) - ${k} * ${h} * (1.0 - ${h})`);
 	});
 }
 
 export function expand(k: Expression, a: Shape): Shape {
 	return shape(p => {
 		let da = a.call(p);
-		return expression(`${da} - ${k}.x`, [da, k])
+		return expression(`${da} - ${k}.x`)
 	});
 }
 
 export function twistX(x: Expression, a: Shape): Shape {
 	return shape(p =>
-		rotateX(expression(`vec3(${p}.x * ${x}.x)`, [x]), a).call(p));
+		rotateX(expression(`vec3(${p}.x * ${x}.x)`), a).call(p));
 }
 
 export function twistY(x: Expression, a: Shape): Shape {
 	return shape(p =>
-		rotateY(expression(`vec3(${p}.y * ${x}.x)`, [x]), a).call(p));
+		rotateY(expression(`vec3(${p}.y * ${x}.x)`), a).call(p));
 }
 
 export function twistZ(x: Expression, a: Shape): Shape {
 	return shape(p =>
-		rotateZ(expression(`vec3(${p}.z * ${x}.x)`, [x]), a).call(p));
+		rotateZ(expression(`vec3(${p}.z * ${x}.x)`), a).call(p));
 }
 
 export function rotateX(x: Expression, a: Shape): Shape {
 	return shape(p => {
-		let c = expression(`cos(${x}.x), sin(${x}.x), 0`, [x]);
-		return a.call(expression(`mat3(1, 0, 0, 0, ${c}.x, ${c}.y, 0, -${c}.y, ${c}.x) * ${p}`, [c]))
+		let c = expression(`cos(${x}.x), sin(${x}.x), 0`);
+		return a.call(expression(`mat3(1, 0, 0, 0, ${c}.x, ${c}.y, 0, -${c}.y, ${c}.x) * ${p}`))
 	});
 }
 
 export function rotateY(x: Expression, a: Shape): Shape {
 	return shape(p => {
-		let c = expression(`cos(${x}.x), sin(${x}.x), 0`, [x]);
-		return a.call(expression(`mat3(${c}.x, 0, -${c}.y, 0, 1, 0, ${c}.y, 0, ${c}.x) * ${p}`, [c]))
+		let c = expression(`cos(${x}.x), sin(${x}.x), 0`);
+		return a.call(expression(`mat3(${c}.x, 0, -${c}.y, 0, 1, 0, ${c}.y, 0, ${c}.x) * ${p}`))
 	});
 }
 
 export function rotateZ(x: Expression, a: Shape): Shape {
 	return shape(p => {
-		let c = expression(`cos(${x}.x), sin(${x}.x), 0`, [x]);
-		return a.call(expression(`mat3(${c}.x, ${c}.y, 0, -${c}.y, ${c}.x, 0, 0, 0, 1) * ${p}`, [c]))
+		let c = expression(`cos(${x}.x), sin(${x}.x), 0`);
+		return a.call(expression(`mat3(${c}.x, ${c}.y, 0, -${c}.y, ${c}.x, 0, 0, 0, 1) * ${p}`))
 	});
 }
 
 export function rotate(axis: Expression, x: Expression, a: Shape): Shape {
 	return shape(p => {
-		let u = expression(`normalize(axis)`, [axis]);
-		let c = expression(`cos(${x}.x), sin(${x}.x), 0`, [x]);
+		let u = expression(`normalize(${axis})`);
+		let c = expression(`cos(${x}.x), sin(${x}.x), 0`);
 		return a.call(expression(`mat3(
 			${c}.x + ${u}.x * ${u}.x * (1.0 - ${c}.x), 
 			${u}.x * ${u}.y * (1.0 - ${c}.x) - ${u}.z * ${c}.y,
@@ -224,27 +219,27 @@ export function rotate(axis: Expression, x: Expression, a: Shape): Shape {
 			${u}.x * ${u}.y * (1.0 - ${c}.x) - ${u}.x * ${c}.y,
 			${u}.z * ${u}.x * (1.0 - ${c}.x) - ${u}.y * ${c}.y,
 			${u}.z * ${u}.y * (1.0 - ${c}.x) + ${u}.x * ${c}.y,
-			${c}.x +  ${u}.z * ${u}.z * (1.0 - ${c}.x)) * ${p}`, [u, c]));
+			${c}.x +  ${u}.z * ${u}.z * (1.0 - ${c}.x)) * ${p}`));
 	});
 }
 
 export function wrapX(a: Shape): Shape {
 	return shape(p => {
 		let c = expression(`length(p.yz)`);
-		return a.call(expression(`${p}.x, ${c}.x, asin(${p}.z / ${c}.x)`, [c]));
+		return a.call(expression(`${p}.x, ${c}.x, asin(${p}.z / ${c}.x)`));
 	});
 }
 
 export function mirror(n: Expression, a: Shape): Shape {
 	return shape(p =>
-		a.call(expression(`${p} - 2.0 * min(0.0, dot(${p}, ${n})) * ${n}`, [n])));
+		a.call(expression(`${p} - 2.0 * min(0.0, dot(${p}, ${n})) * ${n}`)));
 }
 
 export function smoothBox(dimensions: Expression, radius: Expression): Shape {
 	return mirror(value(1, 0, 0),
 		mirror(value(0, 1, 0),
 			mirror(value(0, 0, 1),
-				translate(expression(`0.5 * (${dimensions} - ${radius})`, [dimensions, radius]),
+				translate(expression(`0.5 * (${dimensions} - ${radius})`),
 					max(
 						scale(radius,
 							sphere()))))));
@@ -293,14 +288,14 @@ export function modulate(
 	x: Expression,
 	a: (index: Expression) => Shape,
 	buffer: Expression = value(0.01)): Shape {
-	return shape(p => { 
-		let offset = expression(`${p} + ${x} * 0.5`, [p, x]);
-		let index = expression(`floor(${offset} / ${x})`, [offset, x]);
-		let center = expression(`${index} * ${x}`, [index, x]);
-		let local = expression(`${p} - ${center}`, [p, center]);
+	return shape(p => {
+		let offset = expression(`${p} + ${x} * 0.5`);
+		let index = expression(`floor(${offset} / ${x})`);
+		let center = expression(`${index} * ${x}`);
+		let local = expression(`${p} - ${center}`);
 		let mask = shape(p => {
-			let a = expression(`${buffer} + ${x} * 0.5 - abs(${p})`, [buffer, x, p]);
-			return expression(`min(min(${a}.x, ${a}.y), ${a}.z)`, [a]);
+			let a = expression(`${buffer} + ${x} * 0.5 - abs(${p})`);
+			return expression(`min(min(${a}.x, ${a}.y), ${a}.z)`);
 		});
 		return union(mask, a(index))
 			.call(local);
@@ -311,6 +306,6 @@ export function choose(x: Expression, a: Shape, b: Shape): Shape {
 	return shape(p => {
 		let ad = a.call(p);
 		let bd = b.call(p);
-		return expression(`${x}.x < 0.5 ? ${ad} : ${bd}`, [x, ad, bd]);
+		return expression(`${x}.x < 0.5 ? ${ad} : ${bd}`);
 	});
 }

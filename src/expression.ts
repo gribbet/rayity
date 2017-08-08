@@ -6,17 +6,21 @@ export type Expression = {
 	readonly toString: () => string;
 }
 
-export function expression(
-	body: Code,
-	dependencies: Expression[] = []): Expression {
+let context: Expression[] = [];
 
+export function expression(body: Code): Expression {
 	let id = generateId(body);
-	return {
+	let self = {
 		id: id,
 		body: body,
-		dependencies: dependencies,
-		toString: () => id
+		dependencies: context,
+		toString: () => {
+			context.push(self);
+			return id;
+		}
 	};
+	context = [];
+	return self;
 }
 
 function generateId(body: Code): string {
@@ -44,5 +48,5 @@ export function variable(name: string): Expression {
 }
 
 export function random(x: Expression): Expression {
-	return expression(`fract(sin(dot(${x} + 1000.0, vec3(12.9898, 78.233, 26.724))) * 43758.5453)`, [x]);
+	return expression(`fract(sin(dot(${x} + 1000.0, vec3(12.9898, 78.233, 26.724))) * 43758.5453)`);
 }

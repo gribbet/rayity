@@ -4,21 +4,33 @@ import { Options } from './options';
 import { Scene } from './scene';
 
 function buildExpression(expression: Expression) {
-	return dependencies(expression)
+	return buildExpressions([expression]);		
+}
+
+function buildExpressions(expressions: Expression[]) {
+	return dependencieses(expressions)
 		.map(expression => `	vec3 ${expression} = vec3(${expression.body});`)
 		.reduce((a, b) => a + "\n" + b, "");
 }
 
-function buildExpressions(expressions: Expression[]) {
-	return buildExpression(expression(`vec3(0)`, expressions));
+function dependencies(expression: Expression): Expression[] {
+	return uniqueExpressions(
+		expression.dependencies
+			.map(_ => dependencies(_))
+			.reduce((a, b) => a.concat(b), [])
+			.concat(expression));
 }
 
-function dependencies(expression: Expression): Expression[] {
-	let all = expression.dependencies
-		.map(_ => dependencies(_))
-		.reduce((a, b) => a.concat(b), [])
-		.concat(expression);
-	return all.filter((x, i) => all.findIndex(_ => _.id === x.id) === i);
+function dependencieses(expressions: Expression[]): Expression[] {
+	return uniqueExpressions(
+		expressions
+			.map(_ => dependencies(_))
+			.reduce((a, b) => a.concat(b), []));
+}
+
+function uniqueExpressions(expressions: Expression[]): Expression[] {
+	return expressions.filter((x, i) =>
+		expressions.findIndex(_ => _.id === x.id) === i);
 }
 
 function buildModel(
@@ -26,7 +38,9 @@ function buildModel(
 	options: {
 		cheapNormals: boolean
 	}): Code {
+	console.log("A");
 	let distance = model.shape.call(variable("p"));
+	console.log(distance);
 	let code = `
 	
 float distance${model.id}(vec3 p) {

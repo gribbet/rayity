@@ -41,7 +41,6 @@ export function spotlight(options: {
 	return material({
 		color: value(0),
 		emissivity: expression(
-			`${color} / ${spread}.x * pow(dot(normalize(p), normalize(${direction})) * 0.5 + 0.5, 1.0 / ${spread}.x - 1.0) + ${ambient}`,
-			[color, spread, ambient, direction])
+			`${color} / ${spread}.x * pow(dot(normalize(p), normalize(${direction})) * 0.5 + 0.5, 1.0 / ${spread}.x - 1.0) + ${ambient}`)
 	});
 }
