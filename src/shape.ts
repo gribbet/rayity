@@ -1,4 +1,4 @@
-import { Expression, expression, value } from './expression';
+import { Expression, expression, value, random } from './expression';
 
 export type Shape = {
 	readonly call: (position: Expression) => Expression,
@@ -302,10 +302,28 @@ export function modulate(
 	});
 }
 
-export function choose(x: Expression, a: Shape, b: Shape): Shape {
+export function choose(x: Expression, shapes: Shape[]): Shape {
 	return shape(p => {
-		let ad = a.call(p);
-		let bd = b.call(p);
-		return expression(`${x}.x < 0.5 ? ${ad} : ${bd}`);
+		return expression(shapes
+			.map(_ => _.call(p))
+			.reduce((code, d, i) =>
+				code + `${x}.x < ${((i + 1) / shapes.length).toPrecision(6)} ? ${d} : `, "") + "vec3(0)");
 	});
+}
+
+export function truchet(): Shape {
+	let base = intersection(cube(), union(union(
+		translate(value(0.5, 0, 0.5), torus()),
+		translate(value(-0.5, 0.5, 0),
+			rotateX(value(Math.PI / 2),
+				torus()))),
+		translate(value(0, -0.5, -0.5),
+			rotateZ(value(Math.PI / 2),
+				torus()))));
+	return modulate(value(1, 1, 1), index =>
+		choose(random(index), [
+			base,
+			rotateX(value(Math.PI), base),
+			rotateY(value(Math.PI), base)
+		]));
 }
