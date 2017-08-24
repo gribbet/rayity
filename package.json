@@ -4,7 +4,7 @@
 	"scripts": {
 		"build": "tsc",
 		"watch": "tsc -w",
-		"postinstall": "yarn run build"
+		"postinstall": "yarn && yarn run build"
 	},
 	"main": "lib/index.js",
 	"files": [
