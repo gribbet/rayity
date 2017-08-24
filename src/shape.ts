@@ -1,6 +1,6 @@
 import { Expression, expression, value, random, minNorm } from './expression';
 
-export type Shape = {
+export interface Shape {
 	readonly call: (position: Expression) => Expression,
 }
 

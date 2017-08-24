@@ -3,7 +3,7 @@ import { value } from './expression';
 import { Material, material } from './material';
 import { Model } from './model';
 
-export type Scene = {
+export interface Scene {
 	readonly models: Model[];
 	readonly camera: Camera;
 	readonly air: Material;

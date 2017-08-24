@@ -1,4 +1,4 @@
-export type Options = {
+export interface Options {
     readonly width: number,
     readonly height: number,
     readonly epsilon: number,

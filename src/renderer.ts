@@ -2,7 +2,7 @@ import { build } from './build';
 import { Options } from './options';
 import { Scene } from './scene';
 
-export type Renderer = {
+export interface Renderer {
 	readonly render: () => void;
 }
 

@@ -1,7 +1,7 @@
 import { Material, material } from './material';
 import { Shape, sphere } from './shape';
 
-export type Model = {
+export interface Model {
 	readonly id: number,
 	readonly shape: Shape,
 	readonly material: Material

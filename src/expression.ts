@@ -1,5 +1,5 @@
 export type Code = string;
-export type Expression = {
+export interface Expression {
 	readonly id: string,
 	readonly body: Code,
 	readonly dependencies: Expression[],

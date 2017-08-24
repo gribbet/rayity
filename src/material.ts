@@ -1,6 +1,6 @@
 import { Expression, expression, value } from './expression';
 
-export type Material = {
+export interface Material {
 	readonly transmittance: Expression,
 	readonly smoothness: Expression,
 	readonly refraction: Expression,

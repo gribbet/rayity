@@ -1,6 +1,6 @@
 import { Expression, expression, value } from './expression';
 
-export type Camera = {
+export interface Camera {
 	readonly eye: Expression,
 	readonly target: Expression,
 	readonly up: Expression,
