@@ -323,7 +323,8 @@ export function truchet(): Shape {
 	return modulate(value(1, 1, 1), index =>
 		choose(random(index), [
 			base,
+			rotateX(value(Math.PI / 2), base),
 			rotateX(value(Math.PI), base),
-			rotateY(value(Math.PI), base)
+			rotateX(value(3 * Math.PI / 2), base)
 		]));
 }
