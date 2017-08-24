@@ -1,3 +1,6 @@
+/**
+ * GLSL Code
+ */
 export type Code = string;
 export interface Expression {
 	readonly id: string,
