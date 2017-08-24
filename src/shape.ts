@@ -1,4 +1,4 @@
-import { Expression, expression, value, random } from './expression';
+import { Expression, expression, value, random, minNorm } from './expression';
 
 export type Shape = {
 	readonly call: (position: Expression) => Expression,
@@ -122,7 +122,7 @@ export function max(a: Shape): Shape {
 
 export function stretch(x: Expression, a: Shape): Shape {
 	return shape(p =>
-		a.call(expression(`${p} / ${x}`)));
+		expression(`${a.call(expression(`${p} / ${x}`))} * ${minNorm(x)}`));
 }
 
 export function repeat(x: Expression, a: Shape): Shape {

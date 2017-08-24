@@ -51,3 +51,7 @@ export function variable(name: string): Expression {
 export function random(x: Expression): Expression {
 	return expression(`fract(sin(dot(${x} + 1000.0, vec3(12.9898, 78.233, 26.724))) * 43758.5453)`);
 }
+
+export function minNorm(x: Expression): Expression {
+	return expression(`min(min(${x}.x, ${x}.y), ${x}.z)`);
+}
