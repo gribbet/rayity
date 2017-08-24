@@ -1,9 +1,10 @@
 {
 	"name": "rayity",
-	"version": "0.1.0",
+	"version": "0.2.0",
 	"scripts": {
-		"build": "tsc -w",
-		"postinstall": "npm run build"
+		"build": "tsc",
+		"watch": "tsc -w",
+		"postinstall": "yarn run build"
 	},
 	"main": "lib/index.js",
 	"files": [
