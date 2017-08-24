@@ -8,13 +8,15 @@ export interface Camera {
 	readonly aperture: Expression
 }
 
-export function camera(values?: {
+export interface CameraOptions {
 	eye?: Expression,
 	target?: Expression,
 	up?: Expression,
 	fieldOfView?: Expression,
 	aperture?: Expression
-}): Camera {
+}
+
+export function camera(values?: CameraOptions): Camera {
 	values = values || {};
 	return {
 		eye: values.eye || value(0, 0, -1),
