@@ -15,7 +15,7 @@ export function createViewer(
 	element.appendChild(canvas);
 
 	const gl = canvas.getContext("webgl", {
-		preserveDrawingBuffer: false
+		preserveDrawingBuffer: true
 	});
 	if (gl === null)
 		return null;
@@ -27,6 +27,15 @@ export function createViewer(
 	};
 
 	const renderer = createRenderer(gl, scene, options, variables);
+
+	canvas.addEventListener("click", event => {
+		if (!event.altKey)
+			return;
+		const link = document.createElement("a");
+		link.setAttribute("download", "render.png");
+		link.setAttribute("href", canvas.toDataURL());
+		link.click();
+	});
 
 	canvas.addEventListener("mousedown", () => variables.clicked = true);
 	document.addEventListener("mouseup", () => variables.clicked = false);
