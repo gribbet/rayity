@@ -8,27 +8,35 @@ function buildExpression(expression: Expression) {
 }
 
 function buildExpressions(expressions: Expression[]) {
-	return dependencieses(expressions)
+	return dependencyTree(expressions)
 		.map(expression => `	vec3 ${expression} = vec3(${expression.body});`)
 		.reduce((a, b) => a + "\n" + b, "");
 }
 
-function dependencies(expression: Expression): Expression[] {
-	return uniqueExpressions(
-		dependencieses(expression.dependencies)
-			.concat(expression));
-}
+function dependencyTree(expressions: Expression[]): Expression[] {
+	const cache: { [id: string]: Expression[] } = {};
 
-function dependencieses(expressions: Expression[]): Expression[] {
-	return uniqueExpressions(
-		expressions
-			.map(_ => dependencies(_))
-			.reduce((a, b) => a.concat(b), []));
-}
+	function dependencies(expression: Expression): Expression[] {
+		if (cache[expression.id])
+			return cache[expression.id];
+		return cache[expression.id] = uniqueExpressions(
+			dependencieses(expression.dependencies)
+				.concat(expression));
+	}
 
-function uniqueExpressions(expressions: Expression[]): Expression[] {
-	return expressions.filter((x, i) =>
-		expressions.findIndex(_ => _.id === x.id) === i);
+	function dependencieses(expressions: Expression[]): Expression[] {
+		return uniqueExpressions(
+			expressions
+				.map(_ => dependencies(_))
+				.reduce((a, b) => a.concat(b), []));
+	}
+
+	function uniqueExpressions(expressions: Expression[]): Expression[] {
+		return expressions.filter((x, i) =>
+			expressions.findIndex(_ => _.id === x.id) === i);
+	}
+
+	return dependencieses(expressions);
 }
 
 function buildModel(
