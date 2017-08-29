@@ -6,7 +6,8 @@ export interface Options {
     readonly bounces: number,
     readonly iterations: number,
     readonly memory: number,
-    readonly cheapNormals: boolean
+    readonly cheapNormals: boolean,
+    readonly stepFactor: number
 }
 
 export function options(values?: {
@@ -17,7 +18,8 @@ export function options(values?: {
     bounces?: number,
     iterations?: number,
     memory?: number,
-    cheapNormals?: boolean
+    cheapNormals?: boolean,
+    stepFactor?: number
 }): Options {
     values = values || {};
     return Object.assign({
@@ -28,6 +30,7 @@ export function options(values?: {
         bounces: 8,
         iterations: 1,
         memory: 1.0,
-        cheapNormals: false
+        cheapNormals: false,
+        stepFactor: 0.9
     }, values || {});
 }

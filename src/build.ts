@@ -158,7 +158,7 @@ Material calculateMaterial(int object, vec3 position, vec3 normal, vec3 directio
 }
 
 export function build(
-	scene: Scene,
+	scene: Scene, 
 	options: Options): Code {
 	const code = `
 precision highp float;
@@ -171,7 +171,7 @@ uniform float time;
 varying vec2 uv;
 
 const float PI = 3.14159;
-const float MAX_VALUE = 1e5;
+const float MAX_VALUE = 1e10;
 
 const float epsilon = ${options.epsilon};
 const int steps = ${options.steps};
@@ -288,7 +288,7 @@ void main() {
 				if (closest.distance < epsilon)
 					break;
 
-				distance = distance + closest.distance * 0.9;
+				distance = distance + closest.distance * ${options.stepFactor.toFixed(10)};
 				distance = min(distance, scatter);
 				position = from + direction * distance;
 
