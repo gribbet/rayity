@@ -424,9 +424,9 @@ export function skull(): Shape {
 			spheroid(p => expression(`0.32 * cos(cos(${p}.y * 11.0 + 0.5) * ${p}.z * 2.3)`))));
 	skull = smoothUnion(value(0.015), skull, nose);
 
-	const noseInside = translate(value(0.238, -0.09, 0),
+	const noseInside = translate(value(0.228, -0.09, 0),
 		spheroid(p => expression(`0.11 * cos(sin(${p}.y * 18.0 - 1.62) * ${p}.z * 29.0)`)));
-	skull = smoothDifference(value(0.002),
+	skull = smoothDifference(value(0.005),
 		skull,
 		noseInside);
 
@@ -487,17 +487,17 @@ export function skull(): Shape {
 			scale(value(0.595),
 				sphere())));
 	lowerJaw = smoothUnion(
-		value(0.07),
+		value(0.08),
 		lowerJaw,
-		translate(value(0.2, -0.45, 0.05),
+		translate(value(0.19, -0.44, 0.05),
 			scale(value(0.035),
 				sphere())));
 	skull = smoothUnion(value(0.02), skull, lowerJaw);
 
 	let teeth = translate(value(0.26, -0.29, 0.018), scale(value(0.0371), sphere()));
-	teeth = union(teeth, translate(value(0.25, -0.29, 0.05), scale(value(0.035), sphere())));;
+	teeth = union(teeth, translate(value(0.25, -0.288, 0.05), scale(value(0.035), sphere())));;
 	teeth = union(teeth, translate(value(0.235, -0.29, 0.08), scale(value(0.035), sphere())));;
-	teeth = union(teeth, translate(value(0.215, -0.28, 0.1), scale(value(0.035), sphere())));;
+	teeth = union(teeth, translate(value(0.215, -0.285, 0.1), scale(value(0.035), sphere())));;
 	teeth = difference(teeth, translate(value(0.16, -0.35, 0), scale(value(0.231), sphere())));;
 	teeth = union(teeth, translate(value(0.18, -0.28, 0.115), scale(value(0.035), sphere())));;
 	teeth = union(teeth, translate(value(0.14, -0.28, 0.115), scale(value(0.042), sphere())));;
@@ -507,7 +507,7 @@ export function skull(): Shape {
 
 	teeth = translate(value(0.23, -0.34, 0.018), scale(value(0.0371), sphere()));
 	teeth = union(teeth, translate(value(0.22, -0.34, 0.048), scale(value(0.0353), sphere())));;
-	teeth = union(teeth, translate(value(0.20, -0.34, 0.078), scale(value(0.0353), sphere())));;
+	teeth = union(teeth, translate(value(0.20, -0.345, 0.078), scale(value(0.0353), sphere())));;
 	teeth = union(teeth, translate(value(0.17, -0.35, 0.098), scale(value(0.0353), sphere())));;
 	teeth = union(teeth, translate(value(0.14, -0.35, 0.11), scale(value(0.0353), sphere())));;
 	teeth = union(teeth, translate(value(0.11, -0.35, 0.11), scale(value(0.0353), sphere())));;
