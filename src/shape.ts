@@ -58,7 +58,7 @@ export function cube(): Shape {
 	]);
 }
 
-export function Octohedron(): Shape {
+export function octohedron(): Shape {
 	let l = Math.sqrt(3);
 	return unitShape([
 		value(1 / l, 1 / l, 1 / l),
