@@ -3,7 +3,8 @@
 	"version": "0.3.0",
 	"scripts": {
 		"build": "tsc",
-		"watch": "tsc -w"
+		"watch": "tsc -w",
+		"postinstall": "tsc"
 	},
 	"main": "lib/index.js",
 	"files": [
