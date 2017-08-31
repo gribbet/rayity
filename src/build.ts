@@ -158,7 +158,7 @@ Material calculateMaterial(int object, vec3 position, vec3 normal, vec3 directio
 }
 
 export function build(
-	scene: Scene, 
+	scene: Scene,
 	options: Options): Code {
 	const code = `
 precision highp float;
@@ -233,12 +233,14 @@ void main() {
 			scene.camera.target,
 			scene.camera.up,
 			scene.camera.fieldOfView,
-			scene.camera.aperture])}
+			scene.camera.aperture,
+			scene.camera.focalFactor])}
 	vec3 eye = ${scene.camera.eye};
 	vec3 target = ${scene.camera.target};
 	vec3 up = ${scene.camera.up};
 	float fieldOfView = ${scene.camera.fieldOfView}.x;
 	float aperture = ${scene.camera.aperture}.x;
+	float focalFactor = ${scene.camera.focalFactor}.x;
 
 	vec3 look = normalize(target - eye);
 	up = normalize(up - dot(look, up) * look);
@@ -254,7 +256,7 @@ void main() {
 
 		vec2 angle = (uv * 0.5 + (noise - 0.5) / resolution) * fieldOfView;
 		vec3 screen = vec3(cos(angle.y) * sin(angle.x), sin(angle.y), cos(angle.y) * cos(angle.x));
-		vec3 to = eye + length(target - eye) * (right * screen.x + up * screen.y + look * screen.z);
+		vec3 to = eye + focalFactor * length(target - eye) * (right * screen.x + up * screen.y + look * screen.z);
 
 		vec3 direction = normalize(to - from);
 
