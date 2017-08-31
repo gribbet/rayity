@@ -385,7 +385,7 @@ export function skull(): Shape {
 		spheroid(p => expression(`0.098 * cos(${p}.x * 0.59 + 0.089)`)));
 	skull = smoothDifference(value(0.02), skull, lateralHole);
 
-	const cheekBone = translate(value(0.22, -0.13, 0.18),
+	const cheekBone = translate(value(0.21, -0.13, 0.18),
 		scale(value(0.077), sphere()));
 	skull = smoothUnion(value(0.04), skull, cheekBone);
 
