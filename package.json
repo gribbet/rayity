@@ -2,8 +2,7 @@
 	"name": "rayity",
 	"version": "0.2.0",
 	"scripts": {
-		"watch": "tsc -w",
-		"postinstall": "tsc"
+		"watch": "tsc -w"
 	},
 	"main": "lib/index.js",
 	"files": [
