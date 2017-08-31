@@ -197,7 +197,7 @@ vec3 calculateNormal(int object, vec3 position);
 Material calculateMaterial(int object, vec3 position, vec3 normal, vec3 direction);
 
 vec2 random(int seed) {
-	vec2 s = (uv + vec2(1, 1)) * (1.0 + time + float(seed));
+	vec2 s = (vec2(1) + uv) * float(seed) + time;
 	return vec2(
 		fract(sin(dot(s.xy, vec2(12.9898, 78.233))) * 43758.5453),
 		fract(cos(dot(s.xy, vec2(4.898, 7.23))) * 23421.631));
