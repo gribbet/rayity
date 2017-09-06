@@ -1,18 +1,27 @@
 import { Material, material } from './material';
 import { Shape, sphere } from './shape';
 
+/** An object in a [[Scene]] */
 export interface Model {
-	readonly id: number,
-	readonly shape: Shape,
-	readonly material: Material
+	/** Unique model identified */
+	readonly id: number;
+	/** Object's [[Shape]] */
+	readonly shape: Shape;
+	/** Object's [[Material]] */
+	readonly material: Material;
+}
+
+export interface ModelOptions {
+	/** Object's [[Shape]] */
+	shape?: Shape;
+	/** Object's [[Material]] */
+	material?: Material;
 }
 
 let id = 1;
 
-export function model(values?: {
-	shape?: Shape,
-	material?: Material
-}): Model {
+/** Create a [[Model]] */
+export function model(values?: ModelOptions): Model {
 	return Object.assign({
 		id: id++,
 		shape: sphere(),
