@@ -1,11 +1,20 @@
+/** 
+ * Module for creating a Rayity viewer
+ */
+
 import { Options, options as _options } from './options';
-import { createRenderer } from './renderer';
+import { renderer } from './renderer';
 import { Scene } from './scene';
 
-export function createViewer(
+/** A Rayity viewer to render a [[Scene]] to an [[HTMLElement] */
+export interface Viewer {
+}
+
+/** Create a [[Viewer]] */
+export function viewer(
 	element: HTMLElement,
 	scene: Scene,
-	options?: Options) {
+	options?: Options): Viewer {
 
 	options = options || _options();
 
@@ -18,7 +27,7 @@ export function createViewer(
 		preserveDrawingBuffer: true
 	});
 	if (gl === null)
-		return null;
+		throw "Could not create WebGL context";
 
 	const variables = {
 		time: 0,
@@ -26,7 +35,7 @@ export function createViewer(
 		mouse: { x: 0.0, y: 0.0 }
 	};
 
-	const renderer = createRenderer(gl, scene, options, variables);
+	const renderer_ = renderer(gl, scene, options, variables);
 
 	canvas.addEventListener("click", event => {
 		if (!event.altKey)
@@ -53,10 +62,12 @@ export function createViewer(
 		if (!start) start = time;
 		variables.time = (time - start) / 1000.0;
 
-		renderer.render();
+		renderer_.render();
 
 		requestAnimationFrame(loop);
 	}
 
 	requestAnimationFrame(loop);
+
+	return {};
 }

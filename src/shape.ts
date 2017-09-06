@@ -1,30 +1,42 @@
+/**
+ * Module for creating shape distance functions
+ */
+
+/** Imports */
 import { Expression, expression, value, random, minNorm } from './expression';
 
+/** A distance function */
 export interface Shape {
+	/** Calculate the distance from `position` */
 	readonly call: (position: Expression) => Expression,
 }
 
+/** Create a [[Shape]] */
 export function shape(call: (position: Expression) => Expression): Shape {
 	return {
 		call: call
 	};
 }
 
+/** Null distance function */
 export function zero(): Shape {
 	return shape(p =>
 		expression(`MAX_VALUE`));
 }
 
+/** Unit distance function */
 export function unit(): Shape {
 	return shape(p =>
 		expression(`-MAX_VALUE`));
 }
 
+/** Sphere of diameter 1 */
 export function sphere(): Shape {
 	return shape(p =>
 		expression(`length(${p}) - 0.5`));
 }
 
+/** Plane given a `normal` and `offset` */
 export function plane(normal: Expression, offset: Expression): Shape {
 	return shape(p =>
 		expression(`dot(${p}, ${normal}) + ${offset}.x`));
@@ -37,6 +49,7 @@ function unitShape(normals: Expression[]): Shape {
 		unit());
 }
 
+/** Tetrahedron with circumscribed diameter of 1 */
 export function tetrahedron(): Shape {
 	let l = Math.sqrt(3);
 	return unitShape([
@@ -47,6 +60,7 @@ export function tetrahedron(): Shape {
 	]);
 }
 
+/** Cube of width 1 */
 export function cube(): Shape {
 	return unitShape([
 		value(1, 0, 0),
@@ -58,6 +72,7 @@ export function cube(): Shape {
 	]);
 }
 
+/** Octohedron with circumscribed diameter of 1 */
 export function octohedron(): Shape {
 	let l = Math.sqrt(3);
 	return unitShape([
@@ -72,6 +87,7 @@ export function octohedron(): Shape {
 	]);
 }
 
+/** Dodecahedron with circumscribed diameter of 1 */
 export function dodecahedron(): Shape {
 	let phi = 0.5 * (1 + Math.sqrt(5));
 	let l = Math.sqrt(phi * phi + 1);
@@ -92,22 +108,25 @@ export function dodecahedron(): Shape {
 }
 
 
-
+/** Cylinder of diameter 1 along the (0, 1, 0) axis */
 export function cylinder(): Shape {
 	return shape(p =>
 		expression(`length(${p}.xz) - 0.5`));
 }
 
+/** Torus with outer diameter of 1, inner radius of 0.1 */
 export function torus(): Shape {
 	return shape(p =>
 		expression(`length(vec2(length(${p}.xz) - 0.5, ${p}.y)) - 0.1`));
 }
 
+/** Move a [[Shape]] by `x` */
 export function translate(x: Expression, a: Shape): Shape {
 	return shape(p =>
 		a.call(expression(`${p} - ${x}`)));
 }
 
+/** Scale a [[Shape]] by `x` */
 export function scale(x: Expression, a: Shape): Shape {
 	return shape(p => {
 		let q = a.call(expression(`${p} / ${x}.x`));
@@ -115,6 +134,7 @@ export function scale(x: Expression, a: Shape): Shape {
 	});
 }
 
+/** Variable radius sphere with radius calculcated using `x` */
 export function spheroid(x: (p: Expression) => Expression) {
 	return shape(p => expression(`length(${p}) - ${x(p)}`));
 }
@@ -124,16 +144,19 @@ export function max(a: Shape): Shape {
 		a.call(expression(`max(${p}, 0.0)`)));
 }
 
+/** Stretch a [[Shape]] */
 export function stretch(x: Expression, a: Shape): Shape {
 	return shape(p =>
 		expression(`${a.call(expression(`${p} / ${x}`))} * ${minNorm(x)}`));
 }
 
+/** Repeat a [[Shape]] with repetition factor `x`  */
 export function repeat(x: Expression, a: Shape): Shape {
 	return shape(p =>
 		a.call(expression(`mod(${p} - ${x} * 0.5, ${x}) - ${x} * 0.5`)));
 }
 
+/** The union of two [[Shape]]s */
 export function union(a: Shape, b: Shape): Shape {
 	return shape(p => {
 		let da = a.call(p);
@@ -142,6 +165,7 @@ export function union(a: Shape, b: Shape): Shape {
 	});
 }
 
+/** The intersection of two [[Shape]]s */
 export function intersection(a: Shape, b: Shape): Shape {
 	return shape(p => {
 		let da = a.call(p);
@@ -150,6 +174,7 @@ export function intersection(a: Shape, b: Shape): Shape {
 	});
 }
 
+/** The difference of two [[Shape]]s */
 export function difference(a: Shape, b: Shape): Shape {
 	return shape(p => {
 		let da = a.call(p);
@@ -168,21 +193,25 @@ function smoothMax(k: Expression, a: Expression, b: Expression): Expression {
 	return expression(`mix(${b}, ${a}, ${h}) + ${k} * ${h} * (1.0 - ${h})`);
 }
 
+/** Smooth union */
 export function smoothUnion(k: Expression, a: Shape, b: Shape): Shape {
 	return shape(p =>
 		smoothMin(k, a.call(p), b.call(p)));
 }
 
+/** Smooth intersection */
 export function smoothIntersection(k: Expression, a: Shape, b: Shape): Shape {
 	return shape(p =>
 		smoothMax(k, a.call(p), b.call(p)));
 }
 
+/** Smooth difference */
 export function smoothDifference(k: Expression, a: Shape, b: Shape): Shape {
 	return shape(p =>
 		smoothMax(k, a.call(p), expression(`${b.call(p)} * -1.0`)));
 }
 
+/** Expand a [[Shape]] by distance `k` */
 export function expand(k: Expression, a: Shape): Shape {
 	return shape(p => {
 		let da = a.call(p);
@@ -190,21 +219,25 @@ export function expand(k: Expression, a: Shape): Shape {
 	});
 }
 
+/** Twist a [[Shape]] along the x axis */
 export function twistX(x: Expression, a: Shape): Shape {
 	return shape(p =>
 		rotateX(expression(`vec3(${p}.x * ${x}.x)`), a).call(p));
 }
 
+/** Twist a [[Shape]] along the y axis */
 export function twistY(x: Expression, a: Shape): Shape {
 	return shape(p =>
 		rotateY(expression(`vec3(${p}.y * ${x}.x)`), a).call(p));
 }
 
+/** Twist a [[Shape]] along the z axis */
 export function twistZ(x: Expression, a: Shape): Shape {
 	return shape(p =>
 		rotateZ(expression(`vec3(${p}.z * ${x}.x)`), a).call(p));
 }
 
+/** Rotate a [[Shape]] about the x axis */
 export function rotateX(x: Expression, a: Shape): Shape {
 	return shape(p => {
 		let c = expression(`cos(${x}.x), sin(${x}.x), 0`);
@@ -212,6 +245,7 @@ export function rotateX(x: Expression, a: Shape): Shape {
 	});
 }
 
+/** Rotate a [[Shape]] about the y axis */
 export function rotateY(x: Expression, a: Shape): Shape {
 	return shape(p => {
 		let c = expression(`cos(${x}.x), sin(${x}.x), 0`);
@@ -219,6 +253,7 @@ export function rotateY(x: Expression, a: Shape): Shape {
 	});
 }
 
+/** Rotate a [[Shape]] about the z axis */
 export function rotateZ(x: Expression, a: Shape): Shape {
 	return shape(p => {
 		let c = expression(`cos(${x}.x), sin(${x}.x), 0`);
@@ -226,6 +261,7 @@ export function rotateZ(x: Expression, a: Shape): Shape {
 	});
 }
 
+/** Rotate a [[Shape]] about an arbitrary axis */
 export function rotate(axis: Expression, x: Expression, a: Shape): Shape {
 	return shape(p => {
 		let u = expression(`normalize(${axis})`);
@@ -243,24 +279,27 @@ export function rotate(axis: Expression, x: Expression, a: Shape): Shape {
 	});
 }
 
+/** Wrap a [[Shape]] about the x axis */
 export function wrapX(a: Shape): Shape {
 	return shape(p => {
 		let c = expression(`length(${p}.yz)`);
 		let q = expression(`1, 1, max(0.01, abs(${p}.z))`);
-		//let q = value(1);
 		return expression(`${a.call(expression(`${p}.x, asin(${p}.y / ${c}.x), ${c}.x`))} * ${minNorm(q)}`);
 	});
 }
 
-export function mirror(n: Expression, a: Shape): Shape {
+/** Mirror a [[Shape]] */
+export function mirror(normal: Expression, a: Shape): Shape {
 	return shape(p =>
-		a.call(expression(`${p} - 2.0 * min(0.0, dot(${p}, ${n})) * ${n}`)));
+		a.call(expression(`${p} - 2.0 * min(0.0, dot(${p}, ${normal})) * ${normal}`)));
 }
 
+/** Offset a [[Shape]] */
 export function offset(x: (p: Expression) => Expression, a: Shape): Shape {
 	return shape(p => a.call(expression(`${p} - ${x(p)}`)));
 }
 
+/** A box with rounded corners */
 export function smoothBox(dimensions: Expression, radius: Expression): Shape {
 	return mirror(value(1, 0, 0),
 		mirror(value(0, 1, 0),
@@ -271,6 +310,7 @@ export function smoothBox(dimensions: Expression, radius: Expression): Shape {
 							sphere()))))));
 }
 
+/** A box with aritrary dimensions */
 export function box(dimensions: Expression): Shape {
 	return shape(p => {
 		const d = expression(`abs(${p}) - ${dimensions}`);
@@ -278,6 +318,7 @@ export function box(dimensions: Expression): Shape {
 	});
 }
 
+/** A sierpinksi fractal */
 export function sierpinski(iterations: number = 5, a: Shape = tetrahedron()): Shape {
 	let l = Math.sqrt(2);
 	return Array(iterations)
@@ -291,6 +332,7 @@ export function sierpinski(iterations: number = 5, a: Shape = tetrahedron()): Sh
 								shape))))), a);
 }
 
+/** A recursive tree [[Shape]] */
 export function tree(iterations: number = 8): Shape {
 	let factor = 0.58;
 	let length = 1.2;
@@ -317,6 +359,7 @@ export function tree(iterations: number = 8): Shape {
 		smoothBox(value(width, length, width), value(width / 2)));
 }
 
+/** [[repeat]] where the repetition index can be used to generate the [[Shape]] */
 export function modulate(
 	x: Expression,
 	a: (index: Expression) => Shape,
@@ -335,6 +378,7 @@ export function modulate(
 	});
 }
 
+/** Choose a shape randomly */
 export function choose(x: Expression, shapes: Shape[]): Shape {
 	return shape(p => {
 		return expression(shapes
@@ -344,6 +388,7 @@ export function choose(x: Expression, shapes: Shape[]): Shape {
 	});
 }
 
+/** Truchet */
 export function truchet(): Shape {
 	let base = intersection(cube(), union(union(
 		translate(value(0.5, 0, 0.5), torus()),
@@ -362,6 +407,7 @@ export function truchet(): Shape {
 		]));
 }
 
+/** Skull */
 export function skull(): Shape {
 	let skull =
 		translate(value(0, 0.05, 0),
