@@ -1,3 +1,8 @@
+/**
+ * Rayity index
+ */
+
+/** Exports */
 export * from "./expression";
 export * from "./model";
 export * from "./material";

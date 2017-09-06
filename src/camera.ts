@@ -1,3 +1,8 @@
+/**
+ * Module for creating a [[Camera]]
+ */
+
+/** Imports */
 import { Expression, expression, value } from './expression';
 
 export interface Camera {

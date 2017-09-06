@@ -1,20 +1,25 @@
+/** 
+ * Module for creating a [[Model]]
+ */
+
+/** Imports */
 import { Material, material } from './material';
 import { Shape, sphere } from './shape';
 
 /** An object in a [[Scene]] */
 export interface Model {
-	/** Unique model identified */
+	/** Unique model identifier */
 	readonly id: number;
-	/** Object's [[Shape]] */
+	/** Model's [[Shape]] */
 	readonly shape: Shape;
-	/** Object's [[Material]] */
+	/** Model's [[Material]] */
 	readonly material: Material;
 }
 
 export interface ModelOptions {
-	/** Object's [[Shape]] */
+	/** Model's [[Shape]] */
 	shape?: Shape;
-	/** Object's [[Material]] */
+	/** Model's [[Material]] */
 	material?: Material;
 }
 

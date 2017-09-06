@@ -1,3 +1,8 @@
+/**
+ * Module for creating a [[Material]]
+ */
+
+/** Imports */
 import { Expression, expression, value } from './expression';
 
 export interface Material {

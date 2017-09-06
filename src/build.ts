@@ -1,3 +1,8 @@
+/** 
+ * Functionality for converting a [[Scene]] into GLSL [[Code]] 
+ */
+
+/** Imports */
 import { Code, Expression, expression, variable } from './expression';
 import { Model } from './model';
 import { Options } from './options';

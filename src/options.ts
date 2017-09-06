@@ -1,3 +1,7 @@
+/** 
+ * Module for rendering options
+ */
+
 /** Rendering configuration */
 export interface Options {
     /** Render target width in pixels */

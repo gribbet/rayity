@@ -1,3 +1,7 @@
+/**
+ * Functionality related to managing GLSL expressions
+ */
+
 /** GLSL code */
 export type Code = string;
 
