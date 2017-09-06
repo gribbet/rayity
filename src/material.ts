@@ -99,12 +99,7 @@ export interface SpotlightOptions {
 }
 
 /** Create a spotlight [[Material]] */
-export function spotlight(options: {
-	direction?: Expression,
-	color?: Expression,
-	spread?: Expression,
-	ambient?: Expression,
-}): Material {
+export function spotlight(options: SpotlightOptions): Material {
 	options = options || {};
 	let direction = options.direction || value(0, 1, 0);
 	let color = options.color || value(1, 1, 1);

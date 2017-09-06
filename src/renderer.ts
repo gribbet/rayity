@@ -1,23 +1,42 @@
+/**
+ * Functionality related to rendering a [[Scene]] in a WebbGL context
+ */
+
+/** Imports */
 import { build } from './build';
 import { Options } from './options';
 import { Scene } from './scene';
 
+/** Interface to render a scene to a WebGL context */
 export interface Renderer {
+	/** Render function */
 	readonly render: () => void;
 }
 
-export function createRenderer(
+/** A 2D point */
+export interface Point {
+	/** X coordinate */
+	x: number;
+	/** Y coordinate */
+	y: number;
+}
+
+/** Interface to store scene variables */
+export interface Variables {
+	/* Scene time in seconds */
+	time: number;
+	/** If mouse is clicked */
+	clicked: boolean;
+	/** Mouse position */
+	mouse: Point;
+}
+
+/** Create a [[Renderer]] */
+export function renderer(
 	gl: WebGLRenderingContext,
 	scene: Scene,
 	options: Options,
-	variables?: {
-		time: number,
-		clicked: boolean,
-		mouse: {
-			x: number,
-			y: number
-		}
-	}) {
+	variables?: Variables): Renderer {
 
 	if (!gl.getExtension("OES_texture_float"))
 		throw "No float texture support";
