@@ -1,13 +1,16 @@
 export interface Options {
-    readonly width: number,
-    readonly height: number,
-    readonly epsilon: number,
-    readonly steps: number,
-    readonly bounces: number,
-    readonly iterations: number,
-    readonly memory: number,
-    readonly cheapNormals: boolean,
-    readonly stepFactor: number
+    /** Render target width in pixels */
+    readonly width: number;
+    /** Render target height in pixels */
+    readonly height: number;
+    readonly epsilon: number;
+    readonly steps: number;
+    readonly bounces: number;
+    readonly iterations: number;
+    readonly memory: number;
+    readonly cheapNormals: boolean;
+    readonly stepFactor: number;
+    readonly gamma: number;
 }
 
 export function options(values?: {
@@ -19,7 +22,8 @@ export function options(values?: {
     iterations?: number,
     memory?: number,
     cheapNormals?: boolean,
-    stepFactor?: number
+    stepFactor?: number,
+    gamma?: number
 }): Options {
     values = values || {};
     return Object.assign({
@@ -31,6 +35,7 @@ export function options(values?: {
         iterations: 1,
         memory: 1.0,
         cheapNormals: false,
-        stepFactor: 0.9
+        stepFactor: 0.9,
+        gamma: 2.2
     }, values || {});
 }
