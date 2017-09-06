@@ -157,6 +157,7 @@ Material calculateMaterial(int object, vec3 position, vec3 normal, vec3 directio
 }`;
 }
 
+/** Generate the GLSL shader for this [[Scene]] */
 export function build(
 	scene: Scene,
 	options: Options): Code {
