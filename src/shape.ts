@@ -87,7 +87,11 @@ export function octohedron(): Shape {
 	]);
 }
 
-/** Dodecahedron with circumscribed diameter of 1 */
+/** 
+ * Dodecahedron with circumscribed diameter of 1 
+ * 
+ * <example id="dodecahedron" />
+ */
 export function dodecahedron(): Shape {
 	let phi = 0.5 * (1 + Math.sqrt(5));
 	let l = Math.sqrt(phi * phi + 1);
