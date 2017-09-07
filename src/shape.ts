@@ -219,25 +219,25 @@ export function expand(k: Expression, a: Shape): Shape {
 	});
 }
 
-/** Twist a [[Shape]] along the x axis */
+/** Twist a [[Shape]] along the x-axis */
 export function twistX(x: Expression, a: Shape): Shape {
 	return shape(p =>
 		rotateX(expression(`vec3(${p}.x * ${x}.x)`), a).call(p));
 }
 
-/** Twist a [[Shape]] along the y axis */
+/** Twist a [[Shape]] along the y-axis */
 export function twistY(x: Expression, a: Shape): Shape {
 	return shape(p =>
 		rotateY(expression(`vec3(${p}.y * ${x}.x)`), a).call(p));
 }
 
-/** Twist a [[Shape]] along the z axis */
+/** Twist a [[Shape]] along the z-axis */
 export function twistZ(x: Expression, a: Shape): Shape {
 	return shape(p =>
 		rotateZ(expression(`vec3(${p}.z * ${x}.x)`), a).call(p));
 }
 
-/** Rotate a [[Shape]] about the x axis */
+/** Rotate a [[Shape]] about the x-axis */
 export function rotateX(x: Expression, a: Shape): Shape {
 	return shape(p => {
 		let c = expression(`cos(${x}.x), sin(${x}.x), 0`);
@@ -245,7 +245,7 @@ export function rotateX(x: Expression, a: Shape): Shape {
 	});
 }
 
-/** Rotate a [[Shape]] about the y axis */
+/** Rotate a [[Shape]] about the y-axis */
 export function rotateY(x: Expression, a: Shape): Shape {
 	return shape(p => {
 		let c = expression(`cos(${x}.x), sin(${x}.x), 0`);
@@ -253,7 +253,7 @@ export function rotateY(x: Expression, a: Shape): Shape {
 	});
 }
 
-/** Rotate a [[Shape]] about the z axis */
+/** Rotate a [[Shape]] about the z-axis */
 export function rotateZ(x: Expression, a: Shape): Shape {
 	return shape(p => {
 		let c = expression(`cos(${x}.x), sin(${x}.x), 0`);
@@ -279,7 +279,7 @@ export function rotate(axis: Expression, x: Expression, a: Shape): Shape {
 	});
 }
 
-/** Wrap a [[Shape]] about the x axis */
+/** Wrap a [[Shape]] about the x-axis */
 export function wrapX(a: Shape): Shape {
 	return shape(p => {
 		let c = expression(`length(${p}.yz)`);
