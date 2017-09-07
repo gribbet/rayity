@@ -40,9 +40,9 @@ export interface MaterialOptions {
 	 */
 	refraction?: Expression;
 	/** 
-	 * Material's average scatter distance
+	 * Material's average scatter distance. 0 to disable
 	 * 
-	 * Default: 1e10
+	 * Default: 0
 	 */
 	scatter?: Expression;
 	/** 
@@ -65,7 +65,7 @@ export function material(values?: MaterialOptions): Material {
 		transmittance: value(0),
 		smoothness: value(0),
 		refraction: value(1),
-		scatter: value(1e10),
+		scatter: value(0),
 		color: value(1, 1, 1),
 		emissivity: value(0, 0, 0)
 	}, values || {});
@@ -99,11 +99,11 @@ export interface SpotlightOptions {
 }
 
 /** Create a spotlight [[Material]] */
-export function spotlight(options: SpotlightOptions): Material {
+export function spotlight(options?: SpotlightOptions): Material {
 	options = options || {};
 	let direction = options.direction || value(0, 1, 0);
 	let color = options.color || value(1, 1, 1);
-	let spread = options.spread || value(0.5);
+	let spread = options.spread || value(0.05);
 	let ambient = options.ambient || value(0);
 	return material({
 		color: value(0),
