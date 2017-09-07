@@ -23,19 +23,19 @@ export interface SceneOptions {
 	 * 
 	 * Default: []
 	 */
-	models: Model[];
+	models?: Model[];
 	/** 
 	 * Scene [[Camera]] 
 	 * 
 	 * Default: [[orbit]]()
 	 */
-	camera: Camera;
+	camera?: Camera;
 	/** 
 	 * Scene air [[Material]] 
 	 * 
-	 * Default: [[material]]()
+	 * Default: [[material]]({ color: value(1, 1, 1) })
 	 */
-	air: Material;
+	air?: Material;
 }
 
 /** Create a [[Scene]] */
@@ -44,7 +44,7 @@ export function scene(values?: SceneOptions): Scene {
 		models: [],
 		camera: orbit(),
 		air: material({
-			refraction: value(1)
+			color: value(1, 1, 1)
 		})
 	}, values || {});
 }
