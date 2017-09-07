@@ -288,7 +288,7 @@ void main() {
 
 			vec2 noise = random(iteration * bounces + bounce);
 
-			float scatter = -log(noise.y) * current.scatter;
+			float scatter = -log(noise.y) * current.scatter;			
 
 			for (int step = 1; step <= steps; step++) {
 				closest = calculateClosest(position);
@@ -297,18 +297,19 @@ void main() {
 					break;
 
 				distance = distance + closest.distance * ${options.stepFactor.toFixed(10)};
-				distance = min(distance, scatter);
 				position = from + direction * distance;
 
-				if (distance == scatter)
+				if (scatter > 0.0 && distance >= scatter)
 					break;
 			}
 
-			if (closest.object == 0)
+			if (closest.object == 0) {
+				total += air.color * luminance;
 				break;
+			}
 
-			if (distance == scatter) {
-				from = position;
+			if (scatter > 0.0 && distance > scatter) {
+				from = position - (distance - scatter) * direction;
 				direction = sampleSphere(noise);
 				total += luminance * current.emissivity;
 				luminance *= current.color;
