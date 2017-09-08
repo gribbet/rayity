@@ -8,6 +8,7 @@ import { Scene } from './scene';
 
 /** A Rayity viewer to render a [[Scene]] to an [[HTMLElement] */
 export interface Viewer {
+	stop: () => void;
 }
 
 /** Create a [[Viewer]] */
@@ -57,6 +58,7 @@ export function viewer(
 	});
 
 	let start = 0;
+	let running = true;
 
 	function loop(time: number) {
 		if (!start) start = time;
@@ -64,10 +66,16 @@ export function viewer(
 
 		renderer_.render();
 
-		requestAnimationFrame(loop);
+		if (running)
+			requestAnimationFrame(loop);
 	}
 
 	requestAnimationFrame(loop);
 
-	return {};
+	return {
+		stop: () => {
+			running = false;
+			element.removeChild(canvas);
+		}
+	};
 }
