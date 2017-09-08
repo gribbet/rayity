@@ -49,7 +49,11 @@ function unitShape(normals: Expression[]): Shape {
 		unit());
 }
 
-/** Tetrahedron with circumscribed diameter of 1 */
+/** 
+ * <example id="tetrahedron" />
+ * 
+ * Tetrahedron with circumscribed diameter of 1 
+ */
 export function tetrahedron(): Shape {
 	let l = Math.sqrt(3);
 	return unitShape([
@@ -60,7 +64,11 @@ export function tetrahedron(): Shape {
 	]);
 }
 
-/** Cube of width 1 */
+/** 
+ * <example id="tetrahedron" />
+ * 
+ * Cube of width 1 
+ */
 export function cube(): Shape {
 	return unitShape([
 		value(1, 0, 0),
@@ -88,9 +96,9 @@ export function octohedron(): Shape {
 }
 
 /** 
- * Dodecahedron with circumscribed diameter of 1 
- * 
  * <example id="dodecahedron" />
+ * 
+ * Dodecahedron with circumscribed diameter of 1.  
  */
 export function dodecahedron(): Shape {
 	let phi = 0.5 * (1 + Math.sqrt(5));
@@ -322,7 +330,11 @@ export function box(dimensions: Expression): Shape {
 	});
 }
 
-/** A sierpinksi fractal */
+/** 
+ * <example id="sierpinski" />
+ * 
+ * A sierpinksi fractal
+ */
 export function sierpinski(iterations: number = 5, a: Shape = tetrahedron()): Shape {
 	let l = Math.sqrt(2);
 	return Array(iterations)
