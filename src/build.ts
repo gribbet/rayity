@@ -308,7 +308,7 @@ void main() {
 				break;
 			}
 
-			if (scatter > 0.0 && distance > scatter) {
+			if (scatter > 0.0 && distance >= scatter) {
 				from = position - (distance - scatter) * direction;
 				direction = sampleSphere(noise);
 				total += luminance * current.emissivity;
