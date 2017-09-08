@@ -20,12 +20,13 @@ export interface Expression {
 let context: Expression[] = [];
 
 /** Create an [[Expression]] */
-export function expression(body: Code): Expression {
+export function expression(body: Code, dependencies?: Expression[]): Expression {
+	dependencies = dependencies || context;
 	let id = generateId(body);
 	let self = {
 		id: id,
 		body: body,
-		dependencies: context,
+		dependencies: dependencies,
 		toString: () => {
 			if (context.indexOf(self) === -1)
 				context.push(self);
@@ -54,12 +55,12 @@ export function value(
 	x: number = 0,
 	y: number = x,
 	z: number = y): Expression {
-	return expression(`vec3(${x.toPrecision(10)}, ${y.toPrecision(10)}, ${z.toPrecision(10)})`);
+	return expression(`vec3(${x.toPrecision(10)}, ${y.toPrecision(10)}, ${z.toPrecision(10)})`, []);
 }
 
 /** An expression which is equal to a named variable */
 export function variable(name: string): Expression {
-	return expression(name);
+	return expression(name, []);
 }
 
 /** A random value */
