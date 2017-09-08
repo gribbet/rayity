@@ -30,7 +30,11 @@ export function unit(): Shape {
 		expression(`-MAX_VALUE`));
 }
 
-/** Sphere of diameter 1 */
+/** 
+ * <example id="sphere" />
+ * 
+ * Sphere of diameter 1
+ */
 export function sphere(): Shape {
 	return shape(p =>
 		expression(`length(${p}) - 0.5`));
@@ -65,7 +69,7 @@ export function tetrahedron(): Shape {
 }
 
 /** 
- * <example id="tetrahedron" />
+ * <example id="cube" />
  * 
  * Cube of width 1 
  */
@@ -80,7 +84,11 @@ export function cube(): Shape {
 	]);
 }
 
-/** Octohedron with circumscribed diameter of 1 */
+/** 
+ * <example id="octohedron" />
+ * 
+ * Octohedron with circumscribed diameter of 1
+ */
 export function octohedron(): Shape {
 	let l = Math.sqrt(3);
 	return unitShape([
@@ -120,13 +128,21 @@ export function dodecahedron(): Shape {
 }
 
 
-/** Cylinder of diameter 1 along the (0, 1, 0) axis */
+/** 
+ * <example id="cylinder" />
+ * 
+ * Cylinder of diameter 1 along the (0, 1, 0) axis
+ */
 export function cylinder(): Shape {
 	return shape(p =>
 		expression(`length(${p}.xz) - 0.5`));
 }
 
-/** Torus with outer diameter of 1, inner radius of 0.1 */
+/** 
+ * <example id="torus" />
+ * 
+ * Torus with outer diameter of 1, inner radius of 0.1
+ */
 export function torus(): Shape {
 	return shape(p =>
 		expression(`length(vec2(length(${p}.xz) - 0.5, ${p}.y)) - 0.1`));
@@ -162,7 +178,11 @@ export function stretch(x: Expression, a: Shape): Shape {
 		expression(`${a.call(expression(`${p} / ${x}`))} * ${minNorm(x)}`));
 }
 
-/** Repeat a [[Shape]] with repetition factor `x`  */
+/**
+ * <example id="repeat" />
+ * 
+ * Repeat a [[Shape]] with repetition factor `x`
+ */
 export function repeat(x: Expression, a: Shape): Shape {
 	return shape(p =>
 		a.call(expression(`mod(${p} - ${x} * 0.5, ${x}) - ${x} * 0.5`)));
@@ -311,7 +331,11 @@ export function offset(x: (p: Expression) => Expression, a: Shape): Shape {
 	return shape(p => a.call(expression(`${p} - ${x(p)}`)));
 }
 
-/** A box with rounded corners */
+/** 
+ * <example id="smoothBox" />
+ * 
+ * A box with rounded corners
+ */
 export function smoothBox(dimensions: Expression, radius: Expression): Shape {
 	return mirror(value(1, 0, 0),
 		mirror(value(0, 1, 0),
@@ -322,10 +346,14 @@ export function smoothBox(dimensions: Expression, radius: Expression): Shape {
 							sphere()))))));
 }
 
-/** A box with aritrary dimensions */
+/**
+ * <example id="box" />
+ * 
+ * A box with aritrary dimensions 
+ */
 export function box(dimensions: Expression): Shape {
 	return shape(p => {
-		const d = expression(`abs(${p}) - ${dimensions}`);
+		const d = expression(`abs(${p}) - ${dimensions} * 0.5`);
 		return expression(`max(min(${d}.x, min(${d}.y, ${d}.z)), 0.0) + length(max(${d}, 0.0))`);
 	});
 }
@@ -348,7 +376,11 @@ export function sierpinski(iterations: number = 5, a: Shape = tetrahedron()): Sh
 								shape))))), a);
 }
 
-/** A recursive tree [[Shape]] */
+/** 
+ * <example id="tree" />
+ * 
+ * A recursive tree [[Shape]]
+ */
 export function tree(iterations: number = 8): Shape {
 	let factor = 0.58;
 	let length = 1.2;
@@ -423,7 +455,11 @@ export function truchet(): Shape {
 		]));
 }
 
-/** Skull */
+/** 
+ * <example id="skull" />
+ * 
+ * Skull
+ */
 export function skull(): Shape {
 	let skull =
 		translate(value(0, 0.05, 0),
@@ -542,7 +578,7 @@ export function skull(): Shape {
 	lowerJaw = smoothUnion(value(0.13),
 		lowerJaw,
 		offset(p => expression(`0.04 - 0.03 * cos(${p}.y * 20.2), -0.23, 0.27 + sin(${p}.y) * 0.27`),
-			box(value(0.03, 0.12, 0.014))));
+			box(value(0.06, 0.24, 0.028))));
 	lowerJaw = difference(
 		lowerJaw,
 		translate(value(0, 0.153, 0.2),
