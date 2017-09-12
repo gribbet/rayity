@@ -66,7 +66,7 @@ export function camera(values?: CameraOptions): Camera {
 		eye: values.eye || value(0, 0, -1),
 		target: values.target || value(0, 0, 0),
 		up: values.up || value(0, 1, 0),
-		fieldOfView: values.fieldOfView || value(90 / 180.0 * Math.PI),
+		fieldOfView: values.fieldOfView || value(45 / 180.0 * Math.PI),
 		aperture: values.aperture || value(0.0),
 		focalFactor: values.focalFactor || value(1.0)
 	};
