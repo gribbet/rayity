@@ -404,7 +404,7 @@ export function tree(iterations: number = 6, shape?: Shape): Shape {
 							0),
 						scale(value(factor),
 							rotateY(value(0.1),
-								rotateZ(value(angle / 180 * Math.PI),
+								rotateZ(value(angle),
 									shape)))))));
 	}
 }
