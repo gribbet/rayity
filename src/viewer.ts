@@ -2,7 +2,7 @@
  * Module for creating a Rayity viewer
  */
 
-import { Options, options as _options } from './options';
+import { Options } from './options';
 import { renderer } from './renderer';
 import { Scene } from './scene';
 
@@ -15,9 +15,7 @@ export interface Viewer {
 export function viewer(
 	element: HTMLElement,
 	scene: Scene,
-	options?: Options): Viewer {
-
-	options = options || _options();
+	options: Options): Viewer {
 
 	const canvas = document.createElement("canvas");
 	canvas.width = options.width;

@@ -381,7 +381,7 @@ export function sierpinski(iterations: number = 5, a: Shape = tetrahedron()): Sh
  * 
  * A recursive tree [[Shape]]
  */
-export function tree(iterations: number = 8): Shape {
+export function tree(iterations: number = 7): Shape {
 	let factor = 0.58;
 	let length = 1.2;
 	let width = 0.1;
