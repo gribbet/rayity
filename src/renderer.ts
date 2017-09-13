@@ -79,7 +79,7 @@ export function renderer(
 	const screenShader = gl.createShader(gl.FRAGMENT_SHADER);
 	gl.shaderSource(screenShader, build(scene, options));
 	gl.compileShader(screenShader);
-	if (gl.getShaderInfoLog(screenShader))
+	if (!gl.getShaderParameter(screenShader, gl.COMPILE_STATUS))
 		throw gl.getShaderInfoLog(screenShader);
 
 	const program = gl.createProgram();
