@@ -41,8 +41,10 @@ export function viewer(
 			return;
 		const link = document.createElement("a");
 		link.setAttribute("download", "render.png");
-		link.setAttribute("href", canvas.toDataURL());
-		link.click();
+		canvas.toBlob(blob => {
+			link.setAttribute("href", URL.createObjectURL(blob));
+			link.click();
+		});
 	});
 
 	canvas.addEventListener("mousedown", () => variables.clicked = true);
