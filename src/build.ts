@@ -252,7 +252,7 @@ void main() {
 	up = normalize(up - dot(look, up) * look);
 	vec3 right = cross(look, up);
 	
-	vec3 total;
+	vec3 total = vec3(0);
 
 	for(int iteration = 1; iteration <= iterations; iteration++) {
 		vec2 noise = random(iteration);
@@ -366,8 +366,6 @@ void main() {
 	gl_FragColor = original + vec4(total, iterations);
 
 }` + buildScene(scene, options);
-
-	console.log(code);
 
 	return code;
 }

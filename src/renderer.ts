@@ -38,17 +38,19 @@ export function renderer(
 	options: Options,
 	variables?: Variables): Renderer {
 
-	if (!gl.getExtension("OES_texture_float"))
-		throw "No float texture support";
+	const textureHalfFloatExtension = gl.getExtension("OES_texture_half_float");
+	if (!textureHalfFloatExtension)
+		throw "No half float texture support";
 
 	const textures = [0, 1].map(_ => {
 		const texture = gl.createTexture();
 		gl.bindTexture(gl.TEXTURE_2D, texture);
 		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
 		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-		gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, options.width, options.height, 0, gl.RGBA, gl.FLOAT, null);
+		gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, options.width, options.height, 0, gl.RGBA, textureHalfFloatExtension.HALF_FLOAT_OES, null);
 		return texture;
 	});
+	gl.bindTexture(gl.TEXTURE_2D, null);
 
 	const framebuffer = gl.createFramebuffer();
 
@@ -57,13 +59,15 @@ export function renderer(
 		precision highp float;
 
 		varying vec2 uv;
-		uniform sampler2D texture;
+		uniform highp sampler2D texture;
 		
 		void main() {
 			vec4 result = texture2D(texture, uv * 0.5 - 0.5);
 			gl_FragColor = vec4(pow(result.xyz / result.w, vec3(1.0 / ${options.gamma.toFixed(10)})), 1.0);
 		}`);
 	gl.compileShader(renderShader);
+	if (!gl.getShaderParameter(renderShader, gl.COMPILE_STATUS))
+		throw gl.getShaderInfoLog(renderShader);
 
 	const vertexShader = gl.createShader(gl.VERTEX_SHADER);
 	gl.shaderSource(vertexShader, `
@@ -75,6 +79,8 @@ export function renderer(
 			uv = position.xy;
 		}`);
 	gl.compileShader(vertexShader);
+	if (!gl.getShaderParameter(vertexShader, gl.COMPILE_STATUS))
+		throw gl.getShaderInfoLog(vertexShader);
 
 	const screenShader = gl.createShader(gl.FRAGMENT_SHADER);
 	gl.shaderSource(screenShader, build(scene, options));
@@ -135,10 +141,13 @@ export function renderer(
 			gl.bindTexture(gl.TEXTURE_2D, read);
 			gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
 			gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, write, 0);
+			if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) != gl.FRAMEBUFFER_COMPLETE)
+				throw "Framebuffer not ready";
 			gl.uniform1f(gl.getUniformLocation(program, "time"), variables_.time);
 			gl.uniform2f(gl.getUniformLocation(program, "mouse"), variables_.mouse.x, variables_.mouse.y);
 			gl.uniform1i(gl.getUniformLocation(program, "clicked"), variables_.clicked ? 1 : 0);
 			gl.drawElements(gl.TRIANGLES, indices.length, gl.UNSIGNED_SHORT, 0);
+
 
 			gl.useProgram(renderProgram);
 			gl.bindFramebuffer(gl.FRAMEBUFFER, null);
