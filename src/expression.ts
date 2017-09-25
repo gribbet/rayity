@@ -55,7 +55,7 @@ export function value(
 	x: number = 0,
 	y: number = x,
 	z: number = y): Expression {
-	return expression(`vec3(${x.toPrecision(10)}, ${y.toPrecision(10)}, ${z.toPrecision(10)})`, []);
+	return expression(`${x.toPrecision(10)}, ${y.toPrecision(10)}, ${z.toPrecision(10)}`, []);
 }
 
 /** An expression which is equal to a named variable */

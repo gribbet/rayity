@@ -47,6 +47,8 @@ export function renderer(
 		gl.bindTexture(gl.TEXTURE_2D, texture);
 		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
 		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 		gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, options.width, options.height, 0, gl.RGBA, textureHalfFloatExtension.HALF_FLOAT_OES, null);
 		return texture;
 	});
@@ -62,7 +64,7 @@ export function renderer(
 		uniform highp sampler2D texture;
 		
 		void main() {
-			vec4 result = texture2D(texture, uv * 0.5 - 0.5);
+			vec4 result = texture2D(texture, uv * 0.5 + 0.5);
 			gl_FragColor = vec4(pow(result.xyz / result.w, vec3(1.0 / ${options.gamma.toFixed(10)})), 1.0);
 		}`);
 	gl.compileShader(renderShader);

@@ -247,6 +247,7 @@ void main() {
 	float fieldOfView = ${scene.camera.fieldOfView}.x;
 	float aperture = ${scene.camera.aperture}.x;
 	float focalFactor = ${scene.camera.focalFactor}.x;
+	float aspect = resolution.x / resolution.y;
 
 	vec3 look = normalize(target - eye);
 	up = normalize(up - dot(look, up) * look);
@@ -260,7 +261,7 @@ void main() {
 		vec2 offset = noise.x * aperture * vec2(cos(noise.y * 2.0 * PI), sin(noise.y * 2.0 * PI));
 		vec3 from = eye + offset.x * right + offset.y * up;
 
-		vec2 angle = (uv * 0.5 + (noise - 0.5) / resolution) * fieldOfView;
+		vec2 angle = (uv * 0.5 + (noise - 0.5) / resolution) * fieldOfView * vec2(aspect, 1);
 		vec3 screen = vec3(cos(angle.y) * sin(angle.x), sin(angle.y), cos(angle.y) * cos(angle.x));
 		vec3 to = eye + focalFactor * length(target - eye) * (right * screen.x + up * screen.y + look * screen.z);
 
@@ -356,7 +357,7 @@ void main() {
 		}
 	}
 
-	vec4 original = texture2D(texture, uv * 0.5 - 0.5);
+	vec4 original = texture2D(texture, uv * 0.5 + 0.5);
 	
 	if (clicked) 
 		original *= 0.5;
