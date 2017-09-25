@@ -202,7 +202,7 @@ Closest calculateClosest(vec3 position);
 vec3 calculateNormal(int object, vec3 position);
 Material calculateMaterial(int object, vec3 position, vec3 normal, vec3 direction);
 
-vec2 random(int seed) {
+vec2 random(vec2 uv, int seed) {
 	vec2 s = (vec2(1) + uv) * float(seed) + time;
 	return vec2(
 		fract(sin(dot(s.xy, vec2(12.9898, 78.233))) * 43758.5453),
@@ -256,7 +256,7 @@ void main() {
 	vec3 total = vec3(0);
 
 	for(int iteration = 1; iteration <= iterations; iteration++) {
-		vec2 noise = random(iteration);
+		vec2 noise = random(uv, iteration);
 
 		vec2 offset = noise.x * aperture * vec2(cos(noise.y * 2.0 * PI), sin(noise.y * 2.0 * PI));
 		vec3 from = eye + offset.x * right + offset.y * up;
@@ -287,7 +287,7 @@ void main() {
 			vec3 position = from;
 			float distance = 0.0;
 
-			vec2 noise = random(iteration * bounces + bounce);
+			vec2 noise = random(uv, iteration * bounces + bounce);
 
 			float scatter = -log(noise.y) * current.scatter;			
 
