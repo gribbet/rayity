@@ -102,7 +102,7 @@ export function options(values?: OptionsOptions): Options {
     return Object.assign({
         width: 256,
         height: 256,
-        epsilon: 1e-5,
+        epsilon: 1e-4,
         steps: 100,
         bounces: 8,
         iterations: 1,
