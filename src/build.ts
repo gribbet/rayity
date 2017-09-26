@@ -363,7 +363,5 @@ void main() {
 
 }` + buildScene(scene, options);
 
-	console.log(code);
-
 	return code;
 }
