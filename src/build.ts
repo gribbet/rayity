@@ -58,7 +58,6 @@ float distance${model.id}(vec3 p) {
 }
 
 Material material${model.id}(vec3 p, vec3 n, vec3 d) {
-	Material m;
 	${buildExpressions([
 			model.material.transmittance,
 			model.material.smoothness,
@@ -66,6 +65,7 @@ Material material${model.id}(vec3 p, vec3 n, vec3 d) {
 			model.material.scatter,
 			model.material.color,
 			model.material.emissivity])}
+	Material m;			
 	m.transmittance = ${model.material.transmittance}.x;
 	m.smoothness = ${model.material.smoothness}.x;
 	m.refraction = ${model.material.refraction}.x;
@@ -240,7 +240,11 @@ void main() {
 			scene.camera.up,
 			scene.camera.fieldOfView,
 			scene.camera.aperture,
-			scene.camera.focalFactor])}
+			scene.camera.focalFactor,
+			scene.air.refraction,
+			scene.air.scatter,
+			scene.air.emissivity,
+			scene.air.color])}
 	vec3 eye = ${scene.camera.eye};
 	vec3 target = ${scene.camera.target};
 	vec3 up = ${scene.camera.up};
@@ -248,6 +252,12 @@ void main() {
 	float aperture = ${scene.camera.aperture}.x;
 	float focalFactor = ${scene.camera.focalFactor}.x;
 	float aspect = resolution.x / resolution.y;
+
+	Material air;		
+	air.refraction = ${scene.air.refraction}.x;
+	air.scatter = ${scene.air.scatter}.x;
+	air.emissivity = ${scene.air.emissivity};
+	air.color = ${scene.air.color};
 
 	vec3 look = normalize(target - eye);
 	up = normalize(up - dot(look, up) * look);
@@ -268,17 +278,6 @@ void main() {
 		vec3 direction = normalize(to - from);
 
 		vec3 luminance = vec3(1);
-
-		Material air;
-		${buildExpressions([
-			scene.air.refraction,
-			scene.air.scatter,
-			scene.air.emissivity,
-			scene.air.color])}
-		air.refraction = ${scene.air.refraction}.x;
-		air.scatter = ${scene.air.scatter}.x;
-		air.emissivity = ${scene.air.emissivity};
-		air.color = ${scene.air.color};
 
 		Material current = air;
 
@@ -367,6 +366,8 @@ void main() {
 	gl_FragColor = original + vec4(total, iterations);
 
 }` + buildScene(scene, options);
+
+	console.log(code);
 
 	return code;
 }
