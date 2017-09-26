@@ -117,16 +117,22 @@ export interface OrbitOptions {
 	focalFactor?: Expression
 }
 
+export function spherical(a: Expression): Expression {
+	return expression(`vec3(sin(${a}.y) * cos(${a}.x), cos(${a}.y), sin(${a}.y) * sin(${a}.x))`);
+}
+
 /** Create an orbiting [[Camera]] controlled by the mouse */
 export function orbit(values?: OrbitOptions): Camera {
 	values = values || {};
 	values.target = values.target || value(0, 0, 0);
 	values.offset = values.offset || value(0, 0);
 	values.radius = values.radius || value(1);
+	const r = value(Math.PI, Math.PI / 2);
+	const q = spherical(expression(`vec3(mouse + ${values.offset}.xy, 1) * ${r}`));
 	return camera({
 		target: values.target,
 		eye: expression(
-			`${values.target} + ${values.radius}.x * spherical((mouse + ${values.offset}.xy) * vec2(PI, 0.5 * PI) + vec2(0.5 * PI))`),
+			`${values.target} + ${values.radius}.x * ${q}`),
 		up: values.up,
 		fieldOfView: values.fieldOfView,
 		aperture: values.aperture,

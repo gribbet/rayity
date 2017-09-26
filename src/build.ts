@@ -229,10 +229,6 @@ vec3 sampleSphere(vec2 noise) {
 	return vec3(q * cos(noise.x), q * sin(noise.x), noise.y);
 }
 
-vec3 spherical(vec2 angle) {
-	return vec3(sin(angle.y) * cos(angle.x), cos(angle.y), sin(angle.y) * sin(angle.x));
-}
-
 void main() {
 	${buildExpressions([
 			scene.camera.eye,
