@@ -1,6 +1,6 @@
 {
 	"name": "rayity",
-	"version": "0.3.2",
+	"version": "0.3.3",
 	"scripts": {
 		"build": "tsc",
 		"watch": "tsc -w",
